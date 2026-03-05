@@ -1,0 +1,33 @@
+.custom-navbar {
+    background-color: #B22222 ; 
+}
+
+.custom-navbar .navbar-brand, 
+.custom-navbar .nav-link {
+    color: white !important;
+}
+
+.custom-navbar .nav-link:hover {
+    color: #FFC300 !important; 
+}
+
+.custom-footer {
+    background-color: #B22222 !important;
+    color: white !important;
+    text-align: center;
+    padding: 15px;
+}
+
+.table {
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.thead-dark th {
+    border-bottom: 1px solid black !important;
+    font-weight: bold;
+    background-color: #A31D1D !important;
+    color: white !important;
+}

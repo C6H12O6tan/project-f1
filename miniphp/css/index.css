@@ -1,0 +1,58 @@
+    /* กำหนดสี Navbar */
+    .custom-navbar {
+        background-color: #B22222 ; 
+    }
+
+    /* กำหนดสีตัวอักษรของ Navbar */
+    .custom-navbar .navbar-brand, 
+    .custom-navbar .nav-link {
+        color: white !important;
+    }
+
+    /* เปลี่ยนสี Hover ของเมนู */
+    .custom-navbar .nav-link:hover {
+        color: #FFC300 !important; 
+    }
+
+    /* แก้ไขปุ่ม Toggle  */
+    .navbar-toggler {
+        border-color: white !important;
+    }
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='white' stroke-width='3' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") !important;
+    }
+
+    /* สีสำหรับ Header */
+    .custom-header {
+        background-color:rgb(255, 255, 255) !important; 
+        color: black !important;
+        text-align: center;
+        padding: 20px;
+    }
+
+    /* สีปุ่ม */
+    .custom-btn {
+        background-color: #B82132 !important; 
+        border-color: #A00000 !important; 
+        color: white !important;
+        transition: 0.3s ease-in-out;
+    }
+
+    /* Hover ปุ่ม */
+    .custom-btn:hover {
+        background-color: #A00000 !important;
+        border-color: #8B0000 !important;
+    }
+
+    /* Footer */
+    .custom-footer {
+        background-color: #B22222 !important;
+        color: white !important;
+        text-align: center;
+        padding: 15px;
+    }
+
+    /* สีข้อความ */
+    .text-custom-red {
+        color: #D40000 !important;
+    }
