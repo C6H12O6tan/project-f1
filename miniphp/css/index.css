@@ -1,58 +1,504 @@
-    /* กำหนดสี Navbar */
-    .custom-navbar {
-        background-color: #B22222 ; 
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
+
+body {
+    background: #f4f4f4;
+    color: #111827;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* =========================
+   NAVBAR
+========================= */
+.custom-navbar {
+    background: #c11f1f;
+    padding: 14px 0;
+}
+
+.custom-navbar .custom-brand {
+    color: #fff !important;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.custom-navbar .nav-link {
+    color: #fff !important;
+    font-weight: 500;
+    margin-left: 12px;
+    margin-right: 12px;
+    transition: color 0.2s ease;
+}
+
+.custom-navbar .nav-link:hover,
+.custom-navbar .nav-link.active {
+    color: #ffffff !important;
+    opacity: 0.88;
+}
+
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none !important;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(255,255,255,1)' stroke-width='2.4' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") !important;
+}
+
+.user-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+}
+
+/* =========================
+   FOOTER
+========================= */
+.custom-footer {
+    background: #c11f1f;
+    color: #fff;
+    text-align: center;
+    padding: 18px 0;
+    margin-top: 0;
+    font-size: 15px;
+}
+
+/* =========================
+   HOME PAGE
+========================= */
+.home-user-page {
+    background: #f3f3f3;
+}
+
+/* HERO */
+.home-hero {
+    background: linear-gradient(90deg, #05070d 0%, #061126 45%, #081a47 100%);
+    padding: 74px 0 82px;
+}
+
+.home-hero .container {
+    max-width: 1240px;
+}
+
+.home-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(520px, 590px);
+    gap: 72px;
+    align-items: center;
+}
+
+.home-hero-content {
+    color: #fff;
+}
+
+.home-hero-title {
+    margin: 0 0 24px;
+    color: #fff;
+    font-size: 5rem;
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+    max-width: 620px;
+}
+
+.home-hero-subtitle {
+    margin: 0 0 34px;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 1.85rem;
+    line-height: 1.7;
+    max-width: 620px;
+}
+
+.home-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.home-btn-primary,
+.home-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 180px;
+    height: 56px;
+    padding: 0 28px;
+    border-radius: 14px;
+    font-size: 1.12rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.home-btn-primary {
+    background: #c71f1f;
+    color: #fff;
+    border: 1px solid #c71f1f;
+}
+
+.home-btn-primary:hover {
+    background: #a81818;
+    border-color: #a81818;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.home-btn-secondary {
+    background: #fff;
+    color: #111827;
+    border: 1px solid #fff;
+}
+
+.home-btn-secondary:hover {
+    color: #111827;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.home-hero-media {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.home-hero-image {
+    width: 100%;
+    max-width: 590px;
+    height: 390px;
+    object-fit: cover;
+    border-radius: 22px;
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.35);
+    display: block;
+}
+
+/* FEATURE SECTION */
+.home-features-section {
+    padding: 64px 0;
+    background: #ececec;
+}
+
+.home-features-section .container {
+    max-width: 1240px;
+}
+
+.home-feature-card {
+    height: 100%;
+    background: #fff;
+    border-radius: 22px;
+    padding: 32px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.home-feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+}
+
+.home-feature-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: #f7e1e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c71f1f;
+    font-size: 1.5rem;
+    margin-bottom: 22px;
+}
+
+.home-feature-title {
+    margin: 0 0 14px;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.home-feature-text {
+    margin: 0 0 24px;
+    color: #4b5563;
+    font-size: 1.45rem;
+    line-height: 1.7;
+}
+
+.home-feature-link {
+    color: #c71f1f;
+    text-decoration: none;
+    font-size: 1.35rem;
+    font-weight: 600;
+}
+
+.home-feature-link:hover {
+    color: #a81818;
+}
+
+/* NEWS SECTION */
+.home-news-section {
+    padding: 72px 0 90px;
+    background: #f7f7f7;
+}
+
+.home-news-section .container {
+    max-width: 1240px;
+}
+
+.home-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.home-section-title {
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.home-section-link {
+    color: #c71f1f;
+    text-decoration: none;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.home-section-link:hover {
+    color: #a81818;
+}
+
+.home-news-card {
+    height: 100%;
+    background: #fff;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.home-news-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+}
+
+.home-news-image-link {
+    display: block;
+    text-decoration: none;
+}
+
+.home-news-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    display: block;
+}
+
+.home-news-body {
+    padding: 24px 24px 28px;
+}
+
+.home-news-date {
+    margin-bottom: 12px;
+    color: #6b7280;
+    font-size: 1.15rem;
+}
+
+.home-news-title {
+    margin: 0 0 14px;
+    font-size: 1.95rem;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.home-news-title-link {
+    color: #111827;
+    text-decoration: none;
+}
+
+.home-news-title-link:hover {
+    color: #c71f1f;
+}
+
+.home-news-summary {
+    margin: 0 0 18px;
+    color: #4b5563;
+    font-size: 1.08rem;
+    line-height: 1.75;
+}
+
+.home-news-readmore {
+    color: #c71f1f;
+    text-decoration: none;
+    font-size: 1.08rem;
+    font-weight: 600;
+}
+
+.home-news-readmore:hover {
+    color: #a81818;
+}
+
+.home-empty-news {
+    background: #fff;
+    border-radius: 18px;
+    padding: 28px;
+    text-align: center;
+    color: #6b7280;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 1399px) {
+    .home-hero-title {
+        font-size: 4.4rem;
     }
 
-    /* กำหนดสีตัวอักษรของ Navbar */
-    .custom-navbar .navbar-brand, 
+    .home-hero-subtitle {
+        font-size: 1.5rem;
+    }
+
+    .home-feature-title {
+        font-size: 1.7rem;
+    }
+
+    .home-feature-text {
+        font-size: 1.1rem;
+    }
+
+    .home-section-title {
+        font-size: 2.4rem;
+    }
+}
+
+@media (max-width: 1199px) {
+    .home-hero-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+    }
+
+    .home-hero-media {
+        justify-content: flex-start;
+    }
+
+    .home-hero-image {
+        max-width: 100%;
+        height: 340px;
+    }
+
+    .home-hero-title {
+        font-size: 3.6rem;
+        max-width: 100%;
+    }
+
+    .home-hero-subtitle {
+        max-width: 100%;
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 991px) {
     .custom-navbar .nav-link {
-        color: white !important;
+        margin-left: 0;
+        margin-right: 0;
+        padding: 10px 0;
     }
 
-    /* เปลี่ยนสี Hover ของเมนู */
-    .custom-navbar .nav-link:hover {
-        color: #FFC300 !important; 
+    .home-hero {
+        padding: 58px 0 64px;
     }
 
-    /* แก้ไขปุ่ม Toggle  */
-    .navbar-toggler {
-        border-color: white !important;
-    }
-    .navbar-toggler-icon {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='white' stroke-width='3' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") !important;
+    .home-feature-title {
+        font-size: 1.5rem;
     }
 
-    /* สีสำหรับ Header */
-    .custom-header {
-        background-color:rgb(255, 255, 255) !important; 
-        color: black !important;
-        text-align: center;
+    .home-feature-text {
+        font-size: 1rem;
+    }
+
+    .home-news-title {
+        font-size: 1.4rem;
+    }
+
+    .home-section-link {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .home-hero-title {
+        font-size: 3rem;
+    }
+
+    .home-hero-subtitle {
+        font-size: 1.12rem;
+    }
+
+    .home-hero-image {
+        height: 280px;
+    }
+
+    .home-section-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .home-hero {
+        padding: 46px 0 52px;
+    }
+
+    .home-hero-title {
+        font-size: 2.4rem;
+    }
+
+    .home-hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .home-hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .home-btn-primary,
+    .home-btn-secondary {
+        width: 100%;
+    }
+
+    .home-hero-image {
+        height: 230px;
+        border-radius: 18px;
+    }
+
+    .home-feature-card,
+    .home-news-body {
         padding: 20px;
     }
 
-    /* สีปุ่ม */
-    .custom-btn {
-        background-color: #B82132 !important; 
-        border-color: #A00000 !important; 
-        color: white !important;
-        transition: 0.3s ease-in-out;
+    .home-news-image {
+        height: 200px;
     }
 
-    /* Hover ปุ่ม */
-    .custom-btn:hover {
-        background-color: #A00000 !important;
-        border-color: #8B0000 !important;
+    .home-section-title {
+        font-size: 2rem;
     }
-
-    /* Footer */
-    .custom-footer {
-        background-color: #B22222 !important;
-        color: white !important;
-        text-align: center;
-        padding: 15px;
-    }
-
-    /* สีข้อความ */
-    .text-custom-red {
-        color: #D40000 !important;
-    }
+}
