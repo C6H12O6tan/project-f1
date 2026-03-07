@@ -1,34 +1,162 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body.admin-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f5f5;
+    color: #212529;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ส่วนเนื้อหาหลัก */
+.admin-main {
+    flex: 1;
+}
+
+/* container dashboard */
+.container {
+    flex: 1;
+}
+
+/*
+   NAVBAR */
+
 .custom-navbar {
     background-color: #B22222;
+    padding: 12px 0;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
 }
 
-.custom-navbar .navbar-brand, 
-.custom-navbar .nav-link {
+/* ชื่อระบบ */
+.custom-navbar .navbar-brand,
+.admin-brand {
+    color: white !important;
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: 0.3px;
+    margin-right: 36px;
+    white-space: nowrap;
+}
+
+/* เมนูหลัก */
+.custom-navbar .nav-link,
+.admin-menu .nav-link {
+    color: white !important;
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0 8px;
+    padding: 8px 14px !important;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+/* ระยะห่างระหว่างเมนู */
+.custom-navbar .navbar-nav .nav-item,
+.admin-menu .nav-item {
+    margin: 0 4px;
+}
+
+/* hover */
+.custom-navbar .nav-link:hover,
+.admin-menu .nav-link:hover {
+    color: #FFC300 !important;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* active */
+.custom-navbar .nav-item.active .nav-link,
+.admin-menu .nav-item.active .nav-link {
+    background-color: rgba(255, 255, 255, 0.16);
     color: white !important;
 }
 
-.custom-navbar .nav-link:hover {
-    color: #FFC300 !important; 
+/* logout button */
+.logout-link {
+    color: #ffe1e1 !important;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 8px 14px !important;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
 }
 
-.custom-footer {
-    background-color: #B22222 !important;
-    color: white !important;
-    text-align: center;
-    padding: 15px;
+.logout-link:hover {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.12);
 }
+
+/*
+   CARD (Dashboard) */
 
 .custom-card-color {
-    background-color: #FBFBFB !important; 
-    color: black !important;
+    background-color: #FBFBFB;
+    color: black;
     border-radius: 10px;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.2);
+    border: none;
 }
+
 .custom-card-color .card-header {
-    background-color: #A31D1D !important;
+    background-color: #A31D1D;
+    color: white;
+    font-weight: 600;
+    padding: 12px 16px;
+}
+
+.custom-card-color .card-body {
+    padding: 28px 22px;
 }
 
 .card-body h3 {
-    font-size: 28px;
+    font-size: 30px;
     font-weight: bold;
+    margin-bottom: 0;
+}
+
+/* PAGINATION */
+
+.pagination {
+    margin-bottom: 40px;
+}
+
+/* FOOTER */
+
+.custom-footer {
+    background-color: #B22222;
+    color: white;
+    text-align: center;
+    padding: 18px;
+    margin-top: auto;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1199.98px) {
+    .custom-navbar .navbar-brand,
+    .admin-brand {
+        font-size: 1.5rem;
+        margin-right: 0;
+    }
+
+    .custom-navbar .nav-link,
+    .admin-menu .nav-link,
+    .logout-link {
+        font-size: 0.98rem;
+        margin: 0;
+        display: block;
+        width: 100%;
+        white-space: normal;
+    }
+
+    .custom-navbar .navbar-nav .nav-item,
+    .admin-menu .nav-item {
+        margin: 4px 0;
+    }
 }
