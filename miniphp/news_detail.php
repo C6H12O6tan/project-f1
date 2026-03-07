@@ -28,39 +28,45 @@ if (!$news) {
     include 'components/footer.php';
     exit();
 }
+
+$publishedDate = !empty($news['created_at']) ? date('F j, Y', strtotime($news['created_at'])) : '-';
+$newsTypeLabel = ($news['news_type'] === 'ticket_sale') ? 'TICKET SALE' : 'F1 NEWS';
 ?>
 
-<div class="container article-page">
-    <div class="article-box">
-        <a href="news.php" class="article-back">← กลับหน้าข่าว</a>
+<div class="news-article-page">
+    <div class="news-article-container">
 
-        <div class="article-tag">
-            <?php echo ($news['news_type'] === 'ticket_sale') ? 'เปิดขายตั๋ว' : 'ข่าวทั่วไป'; ?>
+        <a href="news.php" class="news-back-link">← Back to News</a>
+
+        <div class="news-article-tag">
+            <?php echo htmlspecialchars($newsTypeLabel); ?>
         </div>
 
-        <div class="article-meta">
-            วันที่เผยแพร่: <?php echo htmlspecialchars($news['created_at']); ?>
+        <div class="news-article-meta">
+            Published: <?php echo htmlspecialchars($publishedDate); ?>
         </div>
 
-        <h1 class="article-title">
+        <h1 class="news-article-title">
             <?php echo htmlspecialchars($news['title']); ?>
         </h1>
 
         <?php if (!empty($news['summary'])): ?>
-            <div class="article-summary">
+            <div class="news-article-summary">
                 <?php echo nl2br(htmlspecialchars($news['summary'])); ?>
             </div>
         <?php endif; ?>
 
         <?php if (!empty($news['image_url'])): ?>
-            <img
-                src="<?php echo htmlspecialchars($news['image_url']); ?>"
-                class="article-cover"
-                alt="news cover"
-            >
+            <div class="news-article-image-wrap">
+                <img
+                    src="<?php echo htmlspecialchars($news['image_url']); ?>"
+                    class="news-article-image"
+                    alt="news cover"
+                >
+            </div>
         <?php endif; ?>
 
-        <div class="article-content">
+        <div class="news-article-content">
             <?php
             $paragraphs = preg_split("/\r\n\r\n|\n\n|\r\r/", trim($news['content']));
             foreach ($paragraphs as $p) {
@@ -73,10 +79,13 @@ if (!$news) {
         </div>
 
         <?php if ($news['news_type'] === 'ticket_sale' && !empty($news['ticket_id'])): ?>
-            <a href="tickets.php?id=<?php echo urlencode($news['ticket_id']); ?>" class="ticket-button">
-                ไปหน้าจอง / ซื้อตั๋ว
-            </a>
+            <div class="news-ticket-action">
+                <a href="tickets.php?id=<?php echo urlencode($news['ticket_id']); ?>" class="news-ticket-button">
+                    ไปหน้าจอง / ซื้อตั๋ว
+                </a>
+            </div>
         <?php endif; ?>
+
     </div>
 </div>
 

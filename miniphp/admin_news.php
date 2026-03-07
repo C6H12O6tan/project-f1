@@ -1,5 +1,7 @@
 <?php
 include 'db.php';
+
+$current_page = 'admin_news.php';
 include 'components/admin_header.php';
 
 $query = "
@@ -11,10 +13,12 @@ $query = "
 $result = mysqli_query($connection, $query);
 ?>
 
-<div class="container mt-5 mb-5">
-    <h2 class="text-center mb-4">จัดการข่าว</h2>
-    <p class="text-center text-muted mb-4">เพิ่ม แก้ไข และเผยแพร่ข่าวสำหรับผู้ใช้</p>
+<header class="custom-header text-center py-4">
+    <h1>News Management</h1>
+    <p>เพิ่ม แก้ไข และเผยแพร่ข่าวสำหรับผู้ใช้</p>
+</header>
 
+<div class="container mt-5 mb-5">
     <div class="table-card">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
             <h4 class="mb-2">รายการข่าวทั้งหมด</h4>
@@ -40,19 +44,29 @@ $result = mysqli_query($connection, $query);
                         <?php while ($row = mysqli_fetch_assoc($result)): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($row['news_id']); ?></td>
+
                                 <td>
                                     <?php if (!empty($row['image_url'])): ?>
-                                        <img src="<?php echo htmlspecialchars($row['image_url']); ?>" alt="thumb" style="width:80px;height:50px;object-fit:cover;border-radius:6px;">
+                                        <img
+                                            src="<?php echo htmlspecialchars($row['image_url']); ?>"
+                                            alt="thumb"
+                                            style="width: 90px; height: 56px; object-fit: cover; border-radius: 6px;"
+                                        >
                                     <?php else: ?>
-                                        -
+                                        <span class="text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
+
+                                <td style="min-width: 240px;">
                                     <strong><?php echo htmlspecialchars($row['title']); ?></strong>
                                     <?php if (!empty($row['summary'])): ?>
-                                        <br><small class="text-muted"><?php echo htmlspecialchars($row['summary']); ?></small>
+                                        <br>
+                                        <small class="text-muted">
+                                            <?php echo htmlspecialchars($row['summary']); ?>
+                                        </small>
                                     <?php endif; ?>
                                 </td>
+
                                 <td>
                                     <?php if ($row['news_type'] === 'ticket_sale'): ?>
                                         <span class="badge badge-success">เปิดขายตั๋ว</span>
@@ -60,6 +74,7 @@ $result = mysqli_query($connection, $query);
                                         <span class="badge badge-secondary">ทั่วไป</span>
                                     <?php endif; ?>
                                 </td>
+
                                 <td>
                                     <?php if ($row['status'] === 'publish'): ?>
                                         <span class="badge badge-primary">Publish</span>
@@ -67,23 +82,31 @@ $result = mysqli_query($connection, $query);
                                         <span class="badge badge-warning">Draft</span>
                                     <?php endif; ?>
                                 </td>
+
                                 <td>
-                                    <?php
-                                    if (!empty($row['ticket_id'])) {
-                                        echo 'Ticket #' . htmlspecialchars($row['ticket_id']);
-                                        if (!empty($row['ticket_category']) || !empty($row['ticket_section'])) {
-                                            echo '<br><small>' . htmlspecialchars($row['ticket_category'] ?? '') . ' ' . htmlspecialchars($row['ticket_section'] ?? '') . '</small>';
-                                        }
-                                    } else {
-                                        echo '-';
-                                    }
-                                    ?>
+                                    <?php if (!empty($row['ticket_id'])): ?>
+                                        <?php echo 'Ticket #' . htmlspecialchars($row['ticket_id']); ?>
+                                        <?php if (!empty($row['ticket_category']) || !empty($row['ticket_section'])): ?>
+                                            <br>
+                                            <small class="text-muted">
+                                                <?php echo htmlspecialchars(trim(($row['ticket_category'] ?? '') . ' / ' . ($row['ticket_section'] ?? ''))); ?>
+                                            </small>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
                                 </td>
-                                <td><?php echo htmlspecialchars($row['created_at']); ?></td>
+
                                 <td>
-                                    <a href="edit_news.php?id=<?php echo $row['news_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
-                                    <a href="delete_news.php?id=<?php echo $row['news_id']; ?>"
-                                       class="btn btn-danger btn-sm"
+                                    <?php echo !empty($row['created_at']) ? htmlspecialchars($row['created_at']) : '-'; ?>
+                                </td>
+
+                                <td>
+                                    <a href="edit_news.php?id=<?php echo urlencode($row['news_id']); ?>" class="btn btn-warning btn-sm mb-1">
+                                        Edit
+                                    </a>
+                                    <a href="delete_news.php?id=<?php echo urlencode($row['news_id']); ?>"
+                                       class="btn btn-danger btn-sm mb-1"
                                        onclick="return confirm('ยืนยันการลบข่าวนี้หรือไม่?');">
                                         Delete
                                     </a>

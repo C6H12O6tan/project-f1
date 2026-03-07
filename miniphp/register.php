@@ -2,26 +2,75 @@
 session_start();
 include 'db.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $first_name = mysqli_real_escape_string($connection, $_POST['first_name']);
-    $last_name = mysqli_real_escape_string($connection, $_POST['last_name']);
-    $email = mysqli_real_escape_string($connection, $_POST['email']);
-    $password = mysqli_real_escape_string($connection, $_POST['password']); 
-    $phone_number = mysqli_real_escape_string($connection, $_POST['phone_number']);
+$error = '';
+$success = '';
 
-    if (!is_numeric($password) || strlen($password) < 8) {
-        echo "รหัสผ่านต้องเป็นตัวเลขและมีความยาวอย่างน้อย 8 ตัวอักษร";
-        exit();
-    }
+$first_name = '';
+$last_name = '';
+$email = '';
+$phone_number = '';
 
-    $query = "INSERT INTO users (first_name, last_name, email, password, phone_number, user_type)
-              VALUES ('$first_name', '$last_name', '$email', '$password', '$phone_number', 'user')";
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $first_name = trim($_POST['first_name'] ?? '');
+    $last_name = trim($_POST['last_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $phone_number = trim($_POST['phone_number'] ?? '');
 
-    if (mysqli_query($connection, $query)) {
-        header("Location: login.php");
-        exit();
+    if ($first_name === '' || $last_name === '' || $email === '' || $password === '' || $phone_number === '') {
+        $error = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'รูปแบบอีเมลไม่ถูกต้อง';
+    } elseif (!is_numeric($password) || strlen($password) < 8) {
+        $error = 'รหัสผ่านต้องเป็นตัวเลขและมีความยาวอย่างน้อย 8 หลัก';
     } else {
-        echo "เกิดข้อผิดพลาด: " . mysqli_error($connection);
+        $check_stmt = mysqli_prepare($connection, "SELECT user_id FROM users WHERE email = ? LIMIT 1");
+
+        if ($check_stmt) {
+            mysqli_stmt_bind_param($check_stmt, "s", $email);
+            mysqli_stmt_execute($check_stmt);
+            $check_result = mysqli_stmt_get_result($check_stmt);
+            $existing_user = mysqli_fetch_assoc($check_result);
+            mysqli_stmt_close($check_stmt);
+
+            if ($existing_user) {
+                $error = 'อีเมลนี้ถูกใช้งานแล้ว';
+            } else {
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+                $insert_stmt = mysqli_prepare(
+                    $connection,
+                    "INSERT INTO users (first_name, last_name, email, password, phone_number, user_type)
+                     VALUES (?, ?, ?, ?, ?, 'user')"
+                );
+
+                if ($insert_stmt) {
+                    mysqli_stmt_bind_param(
+                        $insert_stmt,
+                        "sssss",
+                        $first_name,
+                        $last_name,
+                        $email,
+                        $hashed_password,
+                        $phone_number
+                    );
+
+                    if (mysqli_stmt_execute($insert_stmt)) {
+                        mysqli_stmt_close($insert_stmt);
+                        header("Location: login.php");
+                        exit();
+                    } else {
+                        $error = 'เกิดข้อผิดพลาดในการสมัครสมาชิก';
+                    }
+
+                    mysqli_stmt_close($insert_stmt);
+                } else {
+                    $error = 'เกิดข้อผิดพลาดของระบบ กรุณาลองใหม่อีกครั้ง';
+                }
+            }
+        } else {
+            $error = 'เกิดข้อผิดพลาดของระบบ กรุณาลองใหม่อีกครั้ง';
+        }
     }
 }
 ?>
@@ -49,26 +98,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form method="post">
                 <div class="form-group">
                     <label>ชื่อ</label>
-                    <input type="text" name="first_name" class="form-control" required>
+                    <input
+                        type="text"
+                        name="first_name"
+                        class="form-control"
+                        required
+                        value="<?php echo htmlspecialchars($first_name); ?>"
+                    >
                 </div>
+
                 <div class="form-group">
                     <label>นามสกุล</label>
-                    <input type="text" name="last_name" class="form-control" required>
+                    <input
+                        type="text"
+                        name="last_name"
+                        class="form-control"
+                        required
+                        value="<?php echo htmlspecialchars($last_name); ?>"
+                    >
                 </div>
+
                 <div class="form-group">
                     <label>อีเมล</label>
-                    <input type="email" name="email" class="form-control" required>
+                    <input
+                        type="email"
+                        name="email"
+                        class="form-control"
+                        required
+                        value="<?php echo htmlspecialchars($email); ?>"
+                    >
                 </div>
+
                 <div class="form-group">
                     <label>รหัสผ่าน</label>
                     <input type="password" name="password" class="form-control" required>
+                    <small class="text-muted">รหัสผ่านต้องเป็นตัวเลขอย่างน้อย 8 หลัก</small>
                 </div>
+
                 <div class="form-group">
                     <label>เบอร์โทรศัพท์</label>
-                    <input type="text" name="phone_number" class="form-control" required>
+                    <input
+                        type="text"
+                        name="phone_number"
+                        class="form-control"
+                        required
+                        value="<?php echo htmlspecialchars($phone_number); ?>"
+                    >
                 </div>
+
                 <button type="submit" class="btn custom-btn btn-block mt-3">สมัครสมาชิก</button>
-                <p class="mt-3 text-center">มีบัญชีอยู่แล้ว? <a href="login.php">เข้าสู่ระบบ</a></p>
+
+                <p class="mt-3 text-center">
+                    มีบัญชีอยู่แล้ว? <a href="login.php">เข้าสู่ระบบ</a>
+                </p>
+
+                <?php if ($error !== ''): ?>
+                    <p class="text-danger text-center"><?php echo htmlspecialchars($error); ?></p>
+                <?php endif; ?>
             </form>
         </div>
     </div>

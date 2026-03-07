@@ -7,30 +7,46 @@ $result = mysqli_query($connection, $query);
 ?>
 
 <div class="container news-page">
-    <h1 class="news-page-title">ข่าวสารล่าสุด</h1>
+    <div class="news-page-header">
+        <div class="news-page-kicker">F1 NEWS</div>
+        <h1 class="news-page-title">ข่าวสารล่าสุด</h1>
+        <p class="news-page-subtitle">อัปเดตข่าว Formula 1, ข่าวเปิดขายตั๋ว และข้อมูลสำคัญล่าสุดสำหรับผู้ใช้งาน</p>
+    </div>
 
     <?php if ($result && mysqli_num_rows($result) > 0): ?>
         <div class="row">
             <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                <div class="col-md-6">
-                    <div class="news-card">
+                <?php
+                $typeLabel = ($row['news_type'] === 'ticket_sale') ? 'เปิดขายตั๋ว' : 'ข่าวทั่วไป';
+                $dateText = !empty($row['created_at']) ? date('F j, Y', strtotime($row['created_at'])) : '-';
+                ?>
+                <div class="col-lg-6 col-md-6">
+                    <article class="news-card">
                         <?php if (!empty($row['image_url'])): ?>
-                            <img
-                                src="<?php echo htmlspecialchars($row['image_url']); ?>"
-                                class="news-card-image"
-                                alt="news image"
-                            >
+                            <a href="news_detail.php?id=<?php echo urlencode($row['news_id']); ?>" class="news-card-image-link">
+                                <img
+                                    src="<?php echo htmlspecialchars($row['image_url']); ?>"
+                                    class="news-card-image"
+                                    alt="news image"
+                                >
+                            </a>
                         <?php endif; ?>
 
                         <div class="news-card-body">
-                            <div class="news-card-meta">
-                                <?php echo htmlspecialchars($row['created_at']); ?> |
-                                <?php echo ($row['news_type'] === 'ticket_sale') ? 'เปิดขายตั๋ว' : 'ข่าวทั่วไป'; ?>
+                            <div class="news-card-topline">
+                                <span class="news-card-type <?php echo ($row['news_type'] === 'ticket_sale') ? 'is-ticket' : 'is-general'; ?>">
+                                    <?php echo htmlspecialchars($typeLabel); ?>
+                                </span>
+                                <span class="news-card-meta">
+                                    <?php echo htmlspecialchars($dateText); ?>
+                                </span>
                             </div>
 
-                            <div class="news-card-title">
-                                <?php echo htmlspecialchars($row['title']); ?>
-                            </div>
+                            <h2 class="news-card-title">
+                                <a href="news_detail.php?id=<?php echo urlencode($row['news_id']); ?>" class="news-card-title-link">
+                                    <?php echo htmlspecialchars($row['title']); ?>
+                                </a>
+                            </h2>
 
                             <?php if (!empty($row['summary'])): ?>
                                 <div class="news-card-summary">
@@ -39,13 +55,13 @@ $result = mysqli_query($connection, $query);
                             <?php endif; ?>
 
                             <a
-                                href="news_detail.php?id=<?php echo $row['news_id']; ?>"
+                                href="news_detail.php?id=<?php echo urlencode($row['news_id']); ?>"
                                 class="news-read-more"
                             >
                                 อ่านต่อ
                             </a>
                         </div>
-                    </div>
+                    </article>
                 </div>
             <?php } ?>
         </div>

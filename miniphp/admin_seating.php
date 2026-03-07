@@ -1,5 +1,7 @@
 <?php
 include 'db.php';
+
+$current_page = 'admin_seating.php';
 include 'components/admin_header.php';
 
 $limit = 20;
@@ -24,10 +26,12 @@ $total_seats = $total_row['total'];
 $total_pages = ceil($total_seats / $limit);
 ?>
 
-<div class="container mt-5">
-    <h2 class="text-center mb-4">Seating Management</h2>
-    <p class="text-center text-muted mb-4">จัดการข้อมูลที่นั่งในสนาม</p>
+<header class="custom-header text-center py-4">
+    <h1>Seating Management</h1>
+    <p>จัดการข้อมูลที่นั่งในสนาม</p>
+</header>
 
+<div class="container mt-5">
     <div class="table-card">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
             <h4 class="mb-2">รายการที่นั่งทั้งหมด</h4>

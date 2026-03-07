@@ -2,27 +2,64 @@
 session_start();
 include 'db.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = mysqli_real_escape_string($connection, $_POST['email']);
-    $password = mysqli_real_escape_string($connection, $_POST['password']); 
+$error = '';
 
-    $query = "SELECT * FROM users WHERE email='$email'";
-    $result = mysqli_query($connection, $query);
-    $user = mysqli_fetch_assoc($result);
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    if ($user && $password === $user['password']) {
-        $_SESSION['user_id'] = $user['user_id'];
-        $_SESSION['role'] = $user['user_type'];
-        $_SESSION['user_name'] = $user['first_name'];
-
-        if ($user['user_type'] == 'admin') {
-            header("Location: admin.php");
-        } else {
-            header("Location: index.php");
-        }
-        exit();
+    if ($email === '' || $password === '') {
+        $error = "กรุณากรอกอีเมลและรหัสผ่าน";
     } else {
-        $error = "อีเมลหรือรหัสผ่านไม่ถูกต้อง!";
+        $stmt = mysqli_prepare($connection, "SELECT * FROM users WHERE email = ? LIMIT 1");
+
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "s", $email);
+            mysqli_stmt_execute($stmt);
+
+            $result = mysqli_stmt_get_result($stmt);
+            $user = mysqli_fetch_assoc($result);
+
+            mysqli_stmt_close($stmt);
+
+            $login_success = false;
+
+            if ($user) {
+                if (password_verify($password, $user['password'])) {
+                    $login_success = true;
+                } elseif ($password === $user['password']) {
+                    // รองรับบัญชีเก่าที่รหัสผ่านยังเป็น plain text
+                    $login_success = true;
+
+                    // อัปเกรดรหัสผ่านเดิมเป็น hash ทันทีหลัง login สำเร็จ
+                    $new_hash = password_hash($password, PASSWORD_DEFAULT);
+                    $upgrade_stmt = mysqli_prepare($connection, "UPDATE users SET password = ? WHERE user_id = ?");
+
+                    if ($upgrade_stmt) {
+                        mysqli_stmt_bind_param($upgrade_stmt, "si", $new_hash, $user['user_id']);
+                        mysqli_stmt_execute($upgrade_stmt);
+                        mysqli_stmt_close($upgrade_stmt);
+                    }
+                }
+            }
+
+            if ($login_success) {
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['role'] = $user['user_type'];
+                $_SESSION['user_name'] = $user['first_name'];
+
+                if ($user['user_type'] === 'admin') {
+                    header("Location: admin.php");
+                } else {
+                    header("Location: index.php");
+                }
+                exit();
+            } else {
+                $error = "อีเมลหรือรหัสผ่านไม่ถูกต้อง!";
+            }
+        } else {
+            $error = "เกิดข้อผิดพลาดของระบบ กรุณาลองใหม่อีกครั้ง";
+        }
     }
 }
 ?>
@@ -50,15 +87,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form method="post">
                 <div class="form-group">
                     <label>อีเมล</label>
-                    <input type="email" name="email" class="form-control" required>
+                    <input
+                        type="email"
+                        name="email"
+                        class="form-control"
+                        required
+                        value="<?php echo isset($email) ? htmlspecialchars($email) : ''; ?>"
+                    >
                 </div>
+
                 <div class="form-group">
                     <label>รหัสผ่าน</label>
                     <input type="password" name="password" class="form-control" required>
                 </div>
+
                 <button type="submit" class="btn custom-btn btn-block mt-3">เข้าสู่ระบบ</button>
-                <p class="mt-3 text-center">ยังไม่มีบัญชี? <a href="register.php">สมัครสมาชิก</a></p>
-                <?php if (isset($error)) { echo "<p class='text-danger text-center'>$error</p>"; } ?>
+
+                <p class="mt-3 text-center">
+                    ยังไม่มีบัญชี? <a href="register.php">สมัครสมาชิก</a>
+                </p>
+
+                <?php if ($error !== ''): ?>
+                    <p class="text-danger text-center"><?php echo htmlspecialchars($error); ?></p>
+                <?php endif; ?>
             </form>
         </div>
     </div>

@@ -1,3 +1,6 @@
+/* 
+   BASE
+ */
 html,
 body {
     height: 100%;
@@ -14,26 +17,20 @@ body.admin-page {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ส่วนเนื้อหาหลัก */
-.admin-main {
-    flex: 1;
-}
-
-/* container dashboard */
+.admin-main,
 .container {
     flex: 1;
 }
 
-/*
-   NAVBAR */
-
+/* 
+   NAVBAR
+ */
 .custom-navbar {
     background-color: #B22222;
     padding: 12px 0;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
 }
 
-/* ชื่อระบบ */
 .custom-navbar .navbar-brand,
 .admin-brand {
     color: white !important;
@@ -44,7 +41,6 @@ body.admin-page {
     white-space: nowrap;
 }
 
-/* เมนูหลัก */
 .custom-navbar .nav-link,
 .admin-menu .nav-link {
     color: white !important;
@@ -57,27 +53,23 @@ body.admin-page {
     transition: all 0.2s ease;
 }
 
-/* ระยะห่างระหว่างเมนู */
 .custom-navbar .navbar-nav .nav-item,
 .admin-menu .nav-item {
     margin: 0 4px;
 }
 
-/* hover */
 .custom-navbar .nav-link:hover,
 .admin-menu .nav-link:hover {
     color: #FFC300 !important;
     background-color: rgba(255, 255, 255, 0.12);
 }
 
-/* active */
 .custom-navbar .nav-item.active .nav-link,
 .admin-menu .nav-item.active .nav-link {
     background-color: rgba(255, 255, 255, 0.16);
     color: white !important;
 }
 
-/* logout button */
 .logout-link {
     color: #ffe1e1 !important;
     font-weight: 600;
@@ -93,9 +85,9 @@ body.admin-page {
     background-color: rgba(255, 255, 255, 0.12);
 }
 
-/*
-   CARD (Dashboard) */
-
+/* 
+   GENERIC CARD / FOOTER / PAGINATION
+ */
 .custom-card-color {
     background-color: #FBFBFB;
     color: black;
@@ -121,13 +113,9 @@ body.admin-page {
     margin-bottom: 0;
 }
 
-/* PAGINATION */
-
 .pagination {
     margin-bottom: 40px;
 }
-
-/* FOOTER */
 
 .custom-footer {
     background-color: #B22222;
@@ -137,8 +125,309 @@ body.admin-page {
     margin-top: auto;
 }
 
-/* RESPONSIVE */
-@media (max-width: 1199.98px) {
+/* 
+   DASHBOARD LAYOUT
+ */
+.dashboard-page {
+    padding: 18px 0 28px;
+    background: #f5f5f5;
+    min-height: calc(100vh - 140px);
+}
+
+.dashboard-container {
+    max-width: 1180px;
+}
+
+.dashboard-top {
+    margin-bottom: 18px;
+}
+
+.dashboard-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+    line-height: 1.1;
+}
+
+.dashboard-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 0;
+}
+
+/* 
+   DASHBOARD STATS
+ */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.dashboard-stat-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    min-height: 108px;
+}
+
+.stat-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.stat-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.stat-icon-blue { background: #3b82f6; }
+.stat-icon-red { background: #b91c1c; }
+.stat-icon-green { background: #22c55e; }
+.stat-icon-purple { background: #a855f7; }
+
+.stat-change {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-change-green {
+    color: #16a34a;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #4b5563;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.1;
+}
+
+/* 
+   DASHBOARD PANELS
+ */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: stretch;
+}
+
+.dashboard-panel {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 16px;
+}
+
+/* 
+   CHART
+ */
+.bar-chart-box {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    flex: 1;
+    min-height: 300px;
+}
+
+.chart-y-axis {
+    width: 34px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: right;
+    color: #6b7280;
+    font-size: 12px;
+    padding-top: 4px;
+    padding-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.chart-main {
+    position: relative;
+    flex: 1;
+    min-height: 300px;
+    border-left: 2px solid #d1d5db;
+    border-bottom: 2px solid #d1d5db;
+    padding: 4px 6px 0 2px;
+    overflow: hidden;
+    display: flex;
+}
+
+.chart-grid-lines {
+    position: absolute;
+    inset: 4px 0 20px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.chart-grid-lines span {
+    display: block;
+    width: 100%;
+    border-top: 1px dashed #d1d5db;
+}
+
+.chart-bars {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    gap: 12px;
+    height: 100%;
+}
+
+.chart-bar-item {
+    flex: 1;
+    min-width: 44px;
+    max-width: 62px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.chart-bar-wrap {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.chart-bar {
+    width: 100%;
+    max-width: 54px;
+    background: #b91c1c;
+    border-radius: 4px 4px 0 0;
+    transition: 0.3s ease;
+}
+
+.chart-bar:hover {
+    opacity: 0.88;
+}
+
+.chart-bar-label {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+/* 
+RECENT BOOKINGS
+ */
+.recent-bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recent-booking-card {
+    background: #f8f8f8;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.recent-booking-info {
+    min-width: 0;
+}
+
+.recent-booking-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 2px;
+}
+
+.recent-booking-event {
+    font-size: 14px;
+    color: #4b5563;
+    margin-bottom: 4px;
+}
+
+.recent-booking-date {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.booking-status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 92px;
+    text-align: center;
+}
+
+.status-confirmed {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.recent-booking-empty {
+    background: #f8f8f8;
+    border-radius: 14px;
+    padding: 20px;
+    color: #6b7280;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* 
+   RESPONSIVE
+ */
+@media (max-width: 1200px) {
     .custom-navbar .navbar-brand,
     .admin-brand {
         font-size: 1.5rem;
@@ -158,5 +447,67 @@ body.admin-page {
     .custom-navbar .navbar-nav .nav-item,
     .admin-menu .nav-item {
         margin: 4px 0;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-page {
+        padding: 16px 0 24px;
+    }
+
+    .dashboard-title {
+        font-size: 22px;
+    }
+
+    .dashboard-subtitle {
+        font-size: 13px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .dashboard-stat-card {
+        min-height: auto;
+    }
+
+    .stat-value {
+        font-size: 22px;
+    }
+
+    .dashboard-panel {
+        padding: 16px;
+        min-height: auto;
+    }
+
+    .panel-title {
+        font-size: 17px;
+    }
+
+    .bar-chart-box,
+    .chart-main {
+        min-height: 220px;
+    }
+
+    .chart-bar-label {
+        font-size: 11px;
+    }
+
+    .recent-booking-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .booking-status-badge {
+        min-width: 80px;
     }
 }
