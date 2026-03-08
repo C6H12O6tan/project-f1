@@ -1,6 +1,6 @@
 <footer class="custom-footer">
     <div class="container">
-        © 2025 F1 Ticket Management | All Rights Reserved By ME
+        © 2026 F1 Ticket Management | All Rights Reserved By ME
     </div>
 </footer>
 
