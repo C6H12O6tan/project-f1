@@ -61,26 +61,36 @@ $newsTypeLabel = ($news['news_type'] === 'ticket_sale') ? 'TICKET SALE' : 'F1 NE
                 <img
                     src="<?php echo htmlspecialchars($news['image_url']); ?>"
                     class="news-article-image"
-                    alt="news cover"
+                    alt="<?php echo htmlspecialchars($news['title']); ?>"
                 >
             </div>
         <?php endif; ?>
 
         <div class="news-article-content">
             <?php
-            $paragraphs = preg_split("/\r\n\r\n|\n\n|\r\r/", trim($news['content']));
-            foreach ($paragraphs as $p) {
-                $p = trim($p);
-                if ($p !== '') {
-                    echo "<p>" . nl2br(htmlspecialchars($p)) . "</p>";
+            $content = isset($news['content']) ? trim($news['content']) : '';
+
+            if ($content !== '') {
+                $paragraphs = preg_split("/\r\n\r\n|\n\n|\r\r/", $content);
+
+                foreach ($paragraphs as $p) {
+                    $p = trim($p);
+                    if ($p !== '') {
+                        echo "<p>" . nl2br(htmlspecialchars($p)) . "</p>";
+                    }
                 }
+            } else {
+                echo "<p>ไม่มีรายละเอียดเพิ่มเติม</p>";
             }
             ?>
         </div>
 
         <?php if ($news['news_type'] === 'ticket_sale' && !empty($news['ticket_id'])): ?>
             <div class="news-ticket-action">
-                <a href="tickets.php?id=<?php echo urlencode($news['ticket_id']); ?>" class="news-ticket-button">
+                <a
+                    href="book.php?ticketid=<?php echo (int)$news['ticket_id']; ?>"
+                    class="news-ticket-button"
+                >
                     ไปหน้าจอง / ซื้อตั๋ว
                 </a>
             </div>

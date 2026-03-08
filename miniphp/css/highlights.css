@@ -1,0 +1,235 @@
+body {
+    background: #f4f4f4;
+    color: #111827;
+}
+
+/* Page */
+.highlights-page {
+    min-height: calc(100vh - 160px);
+    padding: 36px 0 56px;
+}
+
+.highlights-container {
+    max-width: 1240px;
+}
+
+.highlights-header {
+    margin-bottom: 22px;
+}
+
+.highlights-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 10px;
+    color: #111111;
+}
+
+.highlights-subtitle {
+    margin: 0;
+    max-width: 720px;
+    font-size: 1rem;
+    color: #6b7280;
+    line-height: 1.7;
+}
+
+/* Filters */
+.highlights-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.highlight-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #374151;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.highlight-filter-btn:hover {
+    background: #d1d5db;
+    color: #111827;
+}
+
+.highlight-filter-btn.active {
+    background: #e10600;
+    color: #ffffff;
+    box-shadow: 0 8px 18px rgba(225, 6, 0, 0.18);
+}
+
+/* Cards */
+.highlight-card {
+    height: 100%;
+    background: #ffffff;
+    border: 1px solid #ececec;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.highlight-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(17, 24, 39, 0.1);
+}
+
+.highlight-card-body {
+    padding: 18px;
+}
+
+.highlight-card-top {
+    margin-bottom: 12px;
+}
+
+.highlight-card-title {
+    font-size: 1.15rem;
+    font-weight: 750;
+    line-height: 1.45;
+    margin: 0 0 16px;
+    color: #111111;
+    min-height: 3.2em;
+}
+
+/* Badges */
+.highlight-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+.highlight-badge.qualifying {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.highlight-badge.race {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.highlight-badge.pit {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.highlight-badge.overtake {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+/* Video */
+.highlight-video-wrap {
+    margin-bottom: 16px;
+}
+
+.highlight-video-wrap .ratio {
+    overflow: hidden;
+    border-radius: 14px;
+    background: #0f172a;
+}
+
+.highlight-video-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.highlight-video-unavailable {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1f2937, #111827);
+    color: #ffffff;
+    text-align: center;
+    padding: 24px;
+}
+
+.highlight-video-unavailable-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    opacity: 0.95;
+}
+
+/* Footer button */
+.highlight-card-footer {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.highlight-watch-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 16px;
+    border-radius: 12px;
+    background: #111111;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.highlight-watch-btn:hover {
+    background: #e10600;
+    color: #ffffff;
+}
+
+/* Empty */
+.highlights-empty {
+    padding: 32px 22px;
+    background: #ffffff;
+    border: 1px dashed #d1d5db;
+    border-radius: 16px;
+    text-align: center;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .highlights-page {
+        padding: 28px 0 44px;
+    }
+
+    .highlights-title {
+        font-size: 2rem;
+    }
+
+    .highlight-card-title {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .highlights-title {
+        font-size: 1.75rem;
+    }
+
+    .highlight-filter-btn {
+        padding: 9px 14px;
+        font-size: 0.9rem;
+    }
+
+    .highlight-card-body {
+        padding: 15px;
+    }
+}
