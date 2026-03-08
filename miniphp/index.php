@@ -13,9 +13,7 @@ session_regenerate_id(true);
 include 'db.php';
 include 'components/header.php';
 
-/**
- * ดึงข่าวล่าสุด 3 ข่าวที่ publish
- */
+
 $latestNews = [];
 $newsQuery = "SELECT news_id, title, summary, image_url, created_at, news_type, ticket_id
               FROM news
@@ -30,14 +28,12 @@ if ($newsResult && mysqli_num_rows($newsResult) > 0) {
     }
 }
 
-/**
- * รูป hero
- */
-$heroImage = 'https://images.unsplash.com/photo-1504707748692-419802cf939d?auto=format&fit=crop&w=1200&q=80';
 
-if (!empty($latestNews) && !empty($latestNews[0]['image_url'])) {
+$heroImage = 'https://media.formula1.com/image/upload/t_16by9North/c_lfill,w_3392/q_auto/v1740000000/trackside-images/2025/Formula_1_Testing_in_Bahrain___Day_3/2202490999.webp';
+
+/*if (!empty($latestNews) && !empty($latestNews[0]['image_url'])) {
     $heroImage = $latestNews[0]['image_url'];
-}
+}*/
 ?>
 
 <div class="home-user-page">

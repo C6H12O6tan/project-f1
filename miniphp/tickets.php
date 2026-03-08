@@ -1,87 +1,213 @@
 <?php
-if (session_status() == PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-include 'db.php';
 
-$query = "SELECT * FROM tickets";
-$result = mysqli_query($connection, $query);
+include 'db.php';
+include 'components/header.php';
+
+$search = trim($_GET['q'] ?? '');
+$locationFilter = trim($_GET['location'] ?? '');
+$priceFilter = trim($_GET['price'] ?? '');
+
+$sql = "
+    SELECT
+        r.raceid,
+        r.racename,
+        c.circuitname,
+        c.location,
+        c.country,
+        MIN(t.price) AS min_price,
+        MAX(t.price) AS max_price,
+        SUM(t.availableseats) AS total_available,
+        COUNT(t.ticketid) AS ticket_count,
+        SUBSTRING_INDEX(
+            GROUP_CONCAT(t.ticketid ORDER BY t.price ASC, t.ticketid ASC),
+            ',',
+            1
+        ) AS cheapest_ticketid
+    FROM tickets t
+    INNER JOIN races r ON t.raceid = r.raceid
+    INNER JOIN circuits c ON r.circuitid = c.circuitid
+    GROUP BY
+        r.raceid,
+        r.racename,
+        c.circuitname,
+        c.location,
+        c.country
+    ORDER BY r.raceid ASC
+";
+
+$result = mysqli_query($connection, $sql);
+
+$raceCards = [];
+
+if ($result && mysqli_num_rows($result) > 0) {
+    while ($row = mysqli_fetch_assoc($result)) {
+        $totalAvailable = (int) $row['total_available'];
+        $status = $totalAvailable <= 1000 ? 'Limited' : 'Available';
+
+        $raceCards[] = [
+            'raceid' => (int) $row['raceid'],
+            'name' => $row['racename'],
+            'location' => trim($row['location'] . ', ' . $row['country']),
+            'circuitname' => $row['circuitname'],
+            'status' => $status,
+            'min_price' => (float) $row['min_price'],
+            'max_price' => (float) $row['max_price'],
+            'total_available' => $totalAvailable,
+            'ticket_count' => (int) $row['ticket_count'],
+            'cheapest_ticketid' => (int) $row['cheapest_ticketid'],
+        ];
+    }
+}
+
+$filteredCards = [];
+
+foreach ($raceCards as $card) {
+    $matchSearch = true;
+    $matchLocation = true;
+    $matchPrice = true;
+
+    if ($search !== '') {
+        $haystack = strtolower($card['name'] . ' ' . $card['location'] . ' ' . $card['circuitname']);
+        $matchSearch = strpos($haystack, strtolower($search)) !== false;
+    }
+
+    if ($locationFilter !== '') {
+        $matchLocation = stripos($card['location'], $locationFilter) !== false;
+    }
+
+    if ($priceFilter !== '') {
+        $price = $card['min_price'];
+
+        switch ($priceFilter) {
+            case 'under-5000':
+                $matchPrice = $price < 5000;
+                break;
+            case '5000-10000':
+                $matchPrice = $price >= 5000 && $price <= 10000;
+                break;
+            case 'above-10000':
+                $matchPrice = $price > 10000;
+                break;
+            default:
+                $matchPrice = true;
+                break;
+        }
+    }
+
+    if ($matchSearch && $matchLocation && $matchPrice) {
+        $filteredCards[] = $card;
+    }
+}
+
+$locationOptions = [];
+foreach ($raceCards as $card) {
+    $locationOptions[] = $card['location'];
+}
+$locationOptions = array_values(array_unique($locationOptions));
+sort($locationOptions);
 ?>
 
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>F1 Ticket Management</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/ticket.css">
+<main class="tickets-page">
+    <div class="container tickets-container">
 
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-<body>
+        <section class="tickets-header-block">
+            <h1 class="tickets-page-title">Browse Tickets</h1>
+            <p class="tickets-page-subtitle">
+                Book your tickets for upcoming Formula 1 races around the world
+            </p>
+        </section>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">F1 Ticket Management</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
-                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="tickets.php">Tickets</a></li>
-                    <li class="nav-item"><a class="nav-link" href="bookings.php">Reservation</a></li>
-                    
-                    <?php if (isset($_SESSION['user_id'])): ?>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                👤 <?php echo htmlspecialchars($_SESSION['user_name']); ?>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="profile.php">โปรไฟล์</a>
-                                <a class="dropdown-item text-danger" href="logout.php">ออกจากระบบ</a>
-                            </div>
-                        </li>
-                    <?php else: ?>
-                        <li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="register.php">Sign up</a></li>
-                    <?php endif; ?>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Header -->
-    <header class="custom-header text-center py-4">
-        <h1>เลือกซื้อตั๋ว Formula 1</h1>
-        <p>เลือกที่นั่งของคุณและจองตอนนี้</p>
-    </header>
-
-    <!-- Container -->
-    <div class="container mt-5">
-        <div class="row">
-            <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                <div class="col-md-4 mb-4">
-                    <div class="card p-3 shadow">
-                        <h4 class="text-custom-red">ประเภท: <?php echo htmlspecialchars($row['category']); ?></h4>
-                        <p><strong>โซน:</strong> <?php echo htmlspecialchars($row['section']); ?></p>
-                        <p><strong>ราคา:</strong> <?php echo number_format($row['price']); ?> บาท</p>
-                        <p><strong>ที่นั่งว่าง:</strong> <?php echo htmlspecialchars($row['availableseats']); ?> ที่</p>
-                        <a href="book.php?ticketid=<?php echo $row['ticketid']; ?>" class="btn custom-btn">จองเลย</a>
-                    </div>
+        <section class="tickets-filter-wrap">
+            <form method="GET" class="tickets-filter-form">
+                <div class="tickets-search-box">
+                    <span class="tickets-search-icon">⌕</span>
+                    <input type="text" name="q" class="tickets-search-input" placeholder="Search races..."
+                        value="<?php echo htmlspecialchars($search); ?>">
                 </div>
-            <?php } ?>
-        </div>
+
+                <select name="location" class="tickets-select">
+                    <option value="">All Locations</option>
+                    <?php foreach ($locationOptions as $option): ?>
+                        <option value="<?php echo htmlspecialchars($option); ?>" <?php echo $locationFilter === $option ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($option); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
+                <select name="price" class="tickets-select">
+                    <option value="">All Prices</option>
+                    <option value="under-5000" <?php echo $priceFilter === 'under-5000' ? 'selected' : ''; ?>>Under 5,000
+                        THB</option>
+                    <option value="5000-10000" <?php echo $priceFilter === '5000-10000' ? 'selected' : ''; ?>>5,000 -
+                        10,000 THB</option>
+                    <option value="above-10000" <?php echo $priceFilter === 'above-10000' ? 'selected' : ''; ?>>Above
+                        10,000 THB</option>
+                </select>
+
+                <button type="submit" class="tickets-filter-btn">
+                    Apply Filters
+                </button>
+            </form>
+        </section>
+
+        <section class="tickets-grid-section">
+            <div class="row g-4">
+                <?php if (!empty($filteredCards)): ?>
+                    <?php foreach ($filteredCards as $card): ?>
+                        <?php
+                        $statusClass = strtolower($card['status']) === 'limited' ? 'status-limited' : 'status-available';
+                        ?>
+                        <div class="col-xl-4 col-md-6">
+                            <article class="ticket-race-card">
+                                <div class="ticket-race-card-top">
+                                    <h3 class="ticket-race-name"><?php echo htmlspecialchars($card['name']); ?></h3>
+                                </div>
+
+                                <div class="ticket-race-card-body">
+                                    <div class="ticket-info-row">
+                                        <span class="ticket-info-icon">📍</span>
+                                        <span><?php echo htmlspecialchars($card['location']); ?></span>
+                                    </div>
+
+                                    <div class="ticket-info-row">
+                                        <span class="ticket-info-icon">🏁</span>
+                                        <span><?php echo htmlspecialchars($card['circuitname']); ?></span>
+                                    </div>
+
+                                    <div class="ticket-divider"></div>
+
+                                    <div class="ticket-bottom-row">
+                                        <div class="ticket-price-wrap">
+                                            <span class="ticket-currency">฿</span>
+                                            <span class="ticket-price"><?php echo number_format($card['min_price']); ?></span>
+                                        </div>
+
+                                        <span class="ticket-status-badge <?php echo $statusClass; ?>">
+                                            <?php echo htmlspecialchars($card['status']); ?>
+                                        </span>
+                                    </div>
+
+                                    <a href="race_tickets.php?raceid=<?php echo $card['raceid']; ?>" class="ticket-book-btn">
+                                        View Tickets
+                                    </a>
+                                </div>
+                            </article>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-12">
+                        <div class="tickets-empty-state">
+                            No races found matching your filters.
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </section>
+
     </div>
+</main>
 
-    <!-- Footer -->
-    <footer class="custom-footer text-center py-3 mt-5">
-        <p>&copy; 2025 F1 Ticket Management | All Rights Reserved By ME</p>
-    </footer>
-
-</body>
-</html>
+<?php include 'components/footer.php'; ?>

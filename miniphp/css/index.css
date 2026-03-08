@@ -11,9 +11,8 @@ body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* =========================
-   NAVBAR
-========================= */
+/*
+   NAVBAR */
 .custom-navbar {
     background: #c11f1f;
     padding: 14px 0;
@@ -67,9 +66,7 @@ body {
     font-size: 14px;
 }
 
-/* =========================
-   FOOTER
-========================= */
+/* FOOTER */
 .custom-footer {
     background: #c11f1f;
     color: #fff;
@@ -79,16 +76,14 @@ body {
     font-size: 15px;
 }
 
-/* =========================
-   HOME PAGE
-========================= */
+/* HOME PAGE */
 .home-user-page {
     background: #f3f3f3;
 }
 
 /* HERO */
 .home-hero {
-    background: linear-gradient(90deg, #05070d 0%, #061126 45%, #081a47 100%);
+    background: linear-gradient(90deg, #0b0b0b 0%, #160909 45%, #810000 100%);
     padding: 74px 0 82px;
 }
 
@@ -363,9 +358,8 @@ body {
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
+/*
+   RESPONSIVE */
 @media (max-width: 1399px) {
     .home-hero-title {
         font-size: 4.4rem;

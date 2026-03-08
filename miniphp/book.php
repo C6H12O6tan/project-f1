@@ -1,190 +1,296 @@
 <?php
-if (session_status() == PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-include 'db.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
+include 'db.php';
 
-if (!isset($_GET['ticketid'])) {
-    echo "<script>alert('ไม่พบข้อมูลตั๋ว!'); window.location='tickets.php';</script>";
-    exit;
+$userId = (int) $_SESSION['user_id'];
+$ticketId = isset($_GET['ticketid']) ? (int) $_GET['ticketid'] : 0;
+
+function getSeatModeLabel(string $seatmode): string
+{
+    switch ($seatmode) {
+        case 'general':
+            return 'No assigned seat';
+        case 'zoned':
+            return 'Reserved zone seating';
+        case 'premium':
+            return 'Premium hospitality access';
+        default:
+            return 'Ticket access';
+    }
 }
 
-$ticketid = intval($_GET['ticketid']);
-$query = "SELECT * FROM tickets WHERE ticketid = $ticketid";
-$result = mysqli_query($connection, $query);
+function getSeatModeDescription(string $seatmode): string
+{
+    switch ($seatmode) {
+        case 'general':
+            return 'Access to general viewing areas with no fixed seat number.';
+        case 'zoned':
+            return 'Access to a specific grandstand or seating zone for better race viewing.';
+        case 'premium':
+            return 'Exclusive premium experience with hospitality benefits and premium access.';
+        default:
+            return 'Standard ticket access.';
+    }
+}
+
+if ($ticketId <= 0) {
+    include 'components/header.php';
+    echo '<main class="book-page"><div class="container book-container"><div class="book-alert-error">Invalid ticket selected.</div></div></main>';
+    include 'components/footer.php';
+    exit();
+}
+
+$stmt = mysqli_prepare($connection, "
+    SELECT
+        t.ticketid,
+        t.raceid,
+        t.category,
+        t.section,
+        t.seatmode,
+        t.price,
+        t.totalseats,
+        t.availableseats,
+        r.racename,
+        c.circuitname,
+        c.location,
+        c.country
+    FROM tickets t
+    INNER JOIN races r ON t.raceid = r.raceid
+    INNER JOIN circuits c ON r.circuitid = c.circuitid
+    WHERE t.ticketid = ?
+    LIMIT 1
+");
+
+mysqli_stmt_bind_param($stmt, "i", $ticketId);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
 $ticket = mysqli_fetch_assoc($result);
 
 if (!$ticket) {
-    echo "<script>alert('ตั๋วนี้ไม่มีอยู่ในระบบ!'); window.location='tickets.php';</script>";
-    exit;
+    include 'components/header.php';
+    echo '<main class="book-page"><div class="container book-container"><div class="book-alert-error">Ticket not found.</div></div></main>';
+    include 'components/footer.php';
+    exit();
 }
 
-$success = false;
-$error_message = "";
+$error = '';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $quantity = intval($_POST['quantity']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 0;
 
-    if ($quantity <= 0 || $quantity > $ticket['availableseats']) {
-        $error_message = "จำนวนที่นั่งไม่ถูกต้อง";
+    if ($quantity <= 0) {
+        $error = 'Please enter a valid quantity.';
+    } elseif ($quantity > (int) $ticket['availableseats']) {
+        $error = 'Not enough available seats for this ticket.';
     } else {
-        $totalprice = $ticket['price'] * $quantity;
-        $paymentstatus = 'pending';
+        mysqli_begin_transaction($connection);
 
-        $seatQuery = "
-            SELECT seatid, seatnumber, section 
-            FROM seating 
-            WHERE ticketid = $ticketid 
-              AND status = 'available' 
-            ORDER BY seatnumber ASC 
-            LIMIT $quantity
-        ";
-        $seatResult = mysqli_query($connection, $seatQuery);
+        try {
 
-        if (mysqli_num_rows($seatResult) < $quantity) {
-            $error_message = "ที่นั่งไม่เพียงพอ!";
-        } else {
-            $seatIDs = [];
-            $seatInfo = [];
-            while ($seat = mysqli_fetch_assoc($seatResult)) {
-                $seatIDs[] = $seat['seatid'];
-                $seatInfo[] = $seat['section'] . " - " . $seat['seatnumber'];
+            $stmtCheck = mysqli_prepare($connection, "
+                SELECT availableseats
+                FROM tickets
+                WHERE ticketid = ?
+                LIMIT 1
+                FOR UPDATE
+            ");
+            mysqli_stmt_bind_param($stmtCheck, "i", $ticketId);
+            mysqli_stmt_execute($stmtCheck);
+            $resultCheck = mysqli_stmt_get_result($stmtCheck);
+            $freshTicket = mysqli_fetch_assoc($resultCheck);
+
+            if (!$freshTicket) {
+                throw new Exception('Ticket not found during booking.');
             }
 
-            $seatInfoStr = implode(', ', $seatInfo);
+            $currentAvailable = (int) $freshTicket['availableseats'];
 
-            $insertQuery = "
-                INSERT INTO bookings (userid, ticketid, quantity, totalprice, paymentstatus) 
-                VALUES ($user_id, $ticketid, $quantity, $totalprice, '$paymentstatus')
-            ";
-
-            if (mysqli_query($connection, $insertQuery)) {
-                foreach ($seatIDs as $seatID) {
-                    $updateSeatQuery = "UPDATE seating SET status = 'booked' WHERE seatid = $seatID";
-                    mysqli_query($connection, $updateSeatQuery);
-                }
-
-                $updateTicketQuery = "
-                    UPDATE tickets 
-                    SET availableseats = availableseats - $quantity 
-                    WHERE ticketid = $ticketid
-                ";
-                mysqli_query($connection, $updateTicketQuery);
-
-                $success = true;
-            } else {
-                $error_message = mysqli_error($connection);
+            if ($quantity > $currentAvailable) {
+                throw new Exception('The selected quantity exceeds available seats.');
             }
+
+            $totalPrice = $quantity * (float) $ticket['price'];
+
+            $stmtInsert = mysqli_prepare($connection, "
+                INSERT INTO bookings (userid, ticketid, quantity, totalprice, paymentstatus)
+                VALUES (?, ?, ?, ?, 'Pending')
+            ");
+            mysqli_stmt_bind_param($stmtInsert, "iiid", $userId, $ticketId, $quantity, $totalPrice);
+
+            if (!mysqli_stmt_execute($stmtInsert)) {
+                throw new Exception('Failed to create booking.');
+            }
+
+            $stmtUpdate = mysqli_prepare($connection, "
+                UPDATE tickets
+                SET availableseats = availableseats - ?
+                WHERE ticketid = ?
+            ");
+            mysqli_stmt_bind_param($stmtUpdate, "ii", $quantity, $ticketId);
+
+            if (!mysqli_stmt_execute($stmtUpdate)) {
+                throw new Exception('Failed to update available seats.');
+            }
+
+            mysqli_commit($connection);
+
+            header('Location: bookings.php?success=1');
+            exit();
+        } catch (Throwable $e) {
+            mysqli_rollback($connection);
+            $error = $e->getMessage();
         }
     }
 }
+
+include 'components/header.php';
+
+$availableSeats = (int) $ticket['availableseats'];
+
+if ($availableSeats <= 0) {
+    $statusText = 'Sold Out';
+    $statusClass = 'soldout';
+} elseif ($availableSeats <= 1000) {
+    $statusText = 'Limited';
+    $statusClass = 'limited';
+} else {
+    $statusText = 'Available';
+    $statusClass = 'available';
+}
 ?>
 
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <title>จองตั๋ว | F1 Ticket Management</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/ticket.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-</head>
+<main class="book-page">
+    <div class="container book-container">
 
-<body>
+        <section class="book-header">
+            <a href="race_tickets.php?raceid=<?php echo urlencode($ticket['raceid']); ?>" class="book-back-link">← Back to Ticket Types</a>
+            <h1 class="book-title">Book Ticket</h1>
+            <p class="book-subtitle">Review your selected ticket and confirm your booking.</p>
+        </section>
 
-    <nav class="navbar navbar-expand-lg custom-navbar">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">F1 Ticket Management</a>
+        <?php if ($error !== ''): ?>
+            <div class="book-alert-error">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <section class="book-card">
+                    <div class="book-card-head">
+                        <h2 class="book-card-title"><?php echo htmlspecialchars($ticket['racename']); ?></h2>
+                        <span class="book-status-badge <?php echo $statusClass; ?>">
+                            <?php echo htmlspecialchars($statusText); ?>
+                        </span>
+                    </div>
+
+                    <div class="book-info-grid">
+                        <div class="book-info-item">
+                            <span class="book-label">Location</span>
+                            <span class="book-value"><?php echo htmlspecialchars($ticket['location'] . ', ' . $ticket['country']); ?></span>
+                        </div>
+
+                        <div class="book-info-item">
+                            <span class="book-label">Circuit</span>
+                            <span class="book-value"><?php echo htmlspecialchars($ticket['circuitname']); ?></span>
+                        </div>
+
+                        <div class="book-info-item">
+                            <span class="book-label">Category</span>
+                            <span class="book-value"><?php echo htmlspecialchars($ticket['category']); ?></span>
+                        </div>
+
+                        <div class="book-info-item">
+                            <span class="book-label">Section</span>
+                            <span class="book-value"><?php echo htmlspecialchars($ticket['section']); ?></span>
+                        </div>
+
+                        <div class="book-info-item">
+                            <span class="book-label">Access Type</span>
+                            <span class="book-value"><?php echo htmlspecialchars(getSeatModeLabel($ticket['seatmode'] ?? 'general')); ?></span>
+                        </div>
+
+                        <div class="book-info-item">
+                            <span class="book-label">Available Seats</span>
+                            <span class="book-value"><?php echo number_format($availableSeats); ?></span>
+                        </div>
+
+                        <div class="book-info-item book-info-item-full">
+                            <span class="book-label">Description</span>
+                            <span class="book-value book-description">
+                                <?php echo htmlspecialchars(getSeatModeDescription($ticket['seatmode'] ?? 'general')); ?>
+                            </span>
+                        </div>
+
+                        <div class="book-info-item book-info-item-full">
+                            <span class="book-label">Price / Ticket</span>
+                            <span class="book-value book-price">฿<?php echo number_format((float) $ticket['price']); ?></span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-lg-5">
+                <section class="book-form-card">
+                    <h2 class="book-form-title">Confirm Booking</h2>
+
+                    <?php if ($availableSeats > 0): ?>
+                        <form method="POST" class="book-form">
+                            <div class="book-field">
+                                <label for="quantity" class="book-field-label">Quantity</label>
+                                <input
+                                    type="number"
+                                    id="quantity"
+                                    name="quantity"
+                                    class="book-input"
+                                    min="1"
+                                    max="<?php echo $availableSeats; ?>"
+                                    value="1"
+                                    required
+                                >
+                            </div>
+
+                            <div class="book-summary">
+                                <div class="book-summary-row">
+                                    <span>Ticket Type</span>
+                                    <span><?php echo htmlspecialchars($ticket['category']); ?></span>
+                                </div>
+                                <div class="book-summary-row">
+                                    <span>Section</span>
+                                    <span><?php echo htmlspecialchars($ticket['section']); ?></span>
+                                </div>
+                                <div class="book-summary-row">
+                                    <span>Access Type</span>
+                                    <span><?php echo htmlspecialchars(getSeatModeLabel($ticket['seatmode'] ?? 'general')); ?></span>
+                                </div>
+                                <div class="book-summary-row">
+                                    <span>Unit Price</span>
+                                    <span>฿<?php echo number_format((float) $ticket['price']); ?></span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="book-submit-btn">
+                                Confirm Booking
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <div class="book-soldout-box">
+                            This ticket is currently sold out.
+                        </div>
+                    <?php endif; ?>
+                </section>
+            </div>
         </div>
-    </nav>
 
-    <header class="custom-header text-center py-4">
-        <h1>จองตั๋ว Formula 1</h1>
-    </header>
-
-    <div class="container mt-5">
-        <div class="card p-4 shadow custom-card">
-            <h4 class="text-custom">ประเภท: <?php echo $ticket['category']; ?></h4>
-            <p><strong>โซน:</strong> <?php echo $ticket['section']; ?></p>
-            <p><strong>ราคา:</strong> <?php echo number_format($ticket['price']); ?> บาท</p>
-            <p><strong>ที่นั่งว่าง:</strong> <?php echo $ticket['availableseats']; ?> ที่</p>
-
-            <form method="POST">
-                <div class="form-group">
-                    <label for="quantity">จำนวนตั๋ว:</label>
-                    <input type="number" name="quantity" id="quantity" class="form-control" 
-                           required min="1" max="<?php echo $ticket['availableseats']; ?>">
-                </div>
-                <button type="submit" class="btn custom-btn">ยืนยันการจอง</button>
-            </form>
-        </div>
     </div>
+</main>
 
-    <footer class="custom-footer text-center py-3 mt-5">
-        <p>&copy; 2025 F1 Ticket Management | All Rights Reserved By ME</p>
-    </footer>
-
-<?php if ($success): ?>
-    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content custom-modal-red">
-            <div class="modal-header bg-custom-red">
-                <h5 class="modal-title" id="successModalLabel">✅ จองตั๋วสำเร็จ!</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body text-center">
-                <i class="fas fa-ticket-alt modal-icon"></i>
-                <h5>ที่นั่งของคุณคือ: <strong class="text-custom-red"><?= $seatInfoStr ?></strong></h5>
-            </div>
-            <div class="modal-footer">
-                <a href="bookings.php" class="btn btn-custom-red">ดูรายการจอง</a>
-            </div>
-        </div>
-    </div>
-</div>
-    <script>
-        $(document).ready(function() {
-            $('#successModal').modal('show');
-        });
-    </script>
-<?php elseif (!empty($error_message)): ?>
-    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content custom-modal-danger">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="errorModalLabel">
-                        <i class="fas fa-exclamation-triangle"></i> เกิดข้อผิดพลาด
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body text-center">
-                    <h5 class="text-danger"><?= $error_message ?></h5>
-                </div>
-                <div class="modal-footer">
-                    <a href="book.php?ticketid=<?= $ticketid ?>" class="btn btn-danger font-weight-bold">ลองอีกครั้ง</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        $(document).ready(function() {
-            $('#errorModal').modal('show');
-        });
-    </script>
-<?php endif; ?>
-    
-</body>
-
-</html>
+<?php include 'components/footer.php'; ?>

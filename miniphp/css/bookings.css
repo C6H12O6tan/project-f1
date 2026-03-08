@@ -1,33 +1,263 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
+
+body {
+    background: #f3f3f3;
+    color: #111827;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* NAVBAR */
 .custom-navbar {
-    background-color: #B22222 ; 
+    background: #c11f1f;
+    padding: 14px 0;
 }
 
-.custom-navbar .navbar-brand, 
+.custom-navbar .custom-brand {
+    color: #fff !important;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
 .custom-navbar .nav-link {
-    color: white !important;
+    color: #fff !important;
+    font-weight: 500;
+    margin-left: 12px;
+    margin-right: 12px;
+    transition: color 0.2s ease;
 }
 
-.custom-navbar .nav-link:hover {
-    color: #FFC300 !important; 
+.custom-navbar .nav-link:hover,
+.custom-navbar .nav-link.active {
+    color: #ffffff !important;
+    opacity: 0.88;
 }
 
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none !important;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(255,255,255,1)' stroke-width='2.4' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") !important;
+}
+
+.user-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+}
+
+/* FOOTER */
 .custom-footer {
-    background-color: #B22222 !important;
-    color: white !important;
+    background: #c11f1f;
+    color: #fff;
     text-align: center;
-    padding: 15px;
+    padding: 18px 0;
+    margin-top: auto;
+    font-size: 15px;
 }
 
-.table {
-    background-color: white;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+/* PAGE */
+.bookings-page {
+    padding: 36px 0 24px;
+    flex: 1;
 }
 
-.thead-dark th {
-    border-bottom: 1px solid black !important;
-    font-weight: bold;
-    background-color: #A31D1D !important;
-    color: white !important;
+.bookings-container {
+    max-width: 1080px;
+}
+
+.bookings-header {
+    margin-bottom: 24px;
+}
+
+.bookings-title {
+    margin: 0 0 8px;
+    font-size: 2.15rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.bookings-subtitle {
+    margin: 0;
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.booking-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.booking-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.booking-race-name {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.booking-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 88px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.booking-status-paid {
+    background: #d7f0df;
+    color: #157347;
+}
+
+.booking-status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.booking-status-cancelled {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.booking-status-default {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.booking-body {
+    flex: 1;
+}
+
+.booking-text {
+    margin: 8px 0;
+    color: #4b5563;
+    font-size: 0.96rem;
+    line-height: 1.6;
+}
+
+.booking-icon {
+    margin-right: 6px;
+}
+
+.booking-label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.booking-price {
+    margin: 12px 0 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #c11f1f;
+}
+
+.booking-date {
+    margin: 8px 0 0;
+    font-size: 0.86rem;
+    color: #9ca3af;
+}
+
+.booking-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.booking-btn {
+    flex: 1;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 0.94rem;
+    font-weight: 600;
+    transition: 0.25s ease;
+}
+
+.booking-btn-pay {
+    background: #c11f1f;
+    color: #fff;
+}
+
+.booking-btn-pay:hover {
+    background: #a81818;
+    color: #fff;
+}
+
+.booking-btn-cancel {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.booking-btn-cancel:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.booking-empty {
+    background: #fff;
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    color: #6b7280;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 767px) {
+    .bookings-page {
+        padding-top: 30px;
+    }
+
+    .bookings-title {
+        font-size: 1.8rem;
+    }
+
+    .booking-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .booking-actions {
+        flex-direction: column;
+    }
 }

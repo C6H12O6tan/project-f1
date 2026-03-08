@@ -1,278 +1,455 @@
 <?php
-session_start();
-include 'db.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-$success = false;
-$error_message = "";
-
-if (!isset($_SESSION['user_id']) || !isset($_GET['bookingid'])) {
-    header('Location: bookings.php');
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
     exit();
 }
 
-$bookingid = intval($_GET['bookingid']);
-$user_id = $_SESSION['user_id'];
+include 'db.php';
 
-$query = "SELECT * FROM bookings WHERE bookingid = ? AND userid = ?";
-$stmt = mysqli_prepare($connection, $query);
-mysqli_stmt_bind_param($stmt, "ii", $bookingid, $user_id);
+$userId = (int) $_SESSION['user_id'];
+$bookingId = isset($_GET['bookingid']) ? (int) $_GET['bookingid'] : 0;
+
+if ($bookingId <= 0) {
+    include 'components/header.php';
+    echo '<main class="payment-page"><div class="container payment-container"><div class="payment-alert-error">Invalid booking selected.</div></div></main>';
+    include 'components/footer.php';
+    exit();
+}
+
+$stmt = mysqli_prepare($connection, "
+    SELECT
+        b.bookingid,
+        b.userid,
+        b.quantity,
+        b.totalprice,
+        b.paymentstatus,
+        b.bookingdate,
+        t.category,
+        t.section,
+        t.seatmode,
+        r.racename,
+        c.circuitname,
+        c.location,
+        c.country
+    FROM bookings b
+    JOIN tickets t ON b.ticketid = t.ticketid
+    JOIN races r ON t.raceid = r.raceid
+    JOIN circuits c ON r.circuitid = c.circuitid
+    WHERE b.bookingid = ? AND b.userid = ?
+    LIMIT 1
+");
+mysqli_stmt_bind_param($stmt, "ii", $bookingId, $userId);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 $booking = mysqli_fetch_assoc($result);
-mysqli_stmt_close($stmt);
 
 if (!$booking) {
-    $error_message = "ไม่พบข้อมูลการจอง!";
+    include 'components/header.php';
+    echo '<main class="payment-page"><div class="container payment-container"><div class="payment-alert-error">Booking not found.</div></div></main>';
+    include 'components/footer.php';
+    exit();
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $payment_method = mysqli_real_escape_string($connection, $_POST['payment_method']);
-    $payment_date = date("Y-m-d H:i:s");
+function seatModeTextValue(string $seatmode): string
+{
+    $seatmode = strtolower(trim($seatmode));
 
-    if ($payment_method === "credit_card") {
-        $updateQuery = "UPDATE bookings SET 
-                        paymentstatus = 'paid', 
-                        payment_method = ?, 
-                        payment_date = ? 
-                        WHERE bookingid = ?";
-        $stmt = mysqli_prepare($connection, $updateQuery);
-        mysqli_stmt_bind_param($stmt, "ssi", $payment_method, $payment_date, $bookingid);
-        if (mysqli_stmt_execute($stmt)) {
-            $success = true;
-        } else {
-            $error_message = "เกิดข้อผิดพลาด: " . mysqli_error($connection);
+    if ($seatmode === 'general') {
+        return 'No assigned seat';
+    }
+
+    if ($seatmode === 'zoned') {
+        return 'Reserved zone';
+    }
+
+    if ($seatmode === 'premium') {
+        return 'Premium hospitality';
+    }
+
+    return 'Standard access';
+}
+
+$error = '';
+$selectedMethod = $_POST['paymentmethod'] ?? 'Credit Card';
+
+$cardName = trim($_POST['card_name'] ?? '');
+$cardNumber = trim($_POST['card_number'] ?? '');
+$expiryDate = trim($_POST['expiry_date'] ?? '');
+$cvv = trim($_POST['cvv'] ?? '');
+
+$currentBookingStatus = strtolower(trim((string) ($booking['paymentstatus'] ?? '')));
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $allowedMethods = ['Credit Card', 'Bank Transfer', 'PayPal', 'PromptPay'];
+
+    if (!in_array($selectedMethod, $allowedMethods, true)) {
+        $error = 'Please select a valid payment method.';
+    } elseif ($currentBookingStatus === 'paid') {
+        $error = 'This booking has already been paid.';
+    } elseif ($currentBookingStatus === 'cancelled' || $currentBookingStatus === 'canceled') {
+        $error = 'This booking has already been cancelled.';
+    } else {
+        if ($selectedMethod === 'Credit Card') {
+            if ($cardName === '' || $cardNumber === '' || $expiryDate === '' || $cvv === '') {
+                $error = 'Please complete all credit card details.';
+            } elseif (!preg_match('/^[A-Za-z\s]+$/', $cardName)) {
+                $error = 'Cardholder name must contain English letters only.';
+            } elseif (!preg_match('/^[0-9]{4}\s[0-9]{4}\s[0-9]{4}\s[0-9]{4}$/', $cardNumber)) {
+                $error = 'Card number must be in format 1234 5678 9012 3456.';
+            } elseif (!preg_match('/^(0[1-9]|1[0-2])\/[0-9]{2}$/', $expiryDate)) {
+                $error = 'Expiry date must be in MM/YY format.';
+            } elseif (!preg_match('/^[0-9]{3}$/', $cvv)) {
+                $error = 'CVV must be 3 digits.';
+            }
         }
-        mysqli_stmt_close($stmt);
-    } 
-    else {
-        $proof_field = ($payment_method === "bank_transfer") ? "payment_proof_bank" : "payment_proof";
 
-        if (isset($_FILES[$proof_field]) && $_FILES[$proof_field]["error"] == 0) {
-            $upload_dir = "uploads/slips/";
+        if ($error === '') {
+            $newPaymentStatus = 'paid';
+            $newBookingStatus = 'Paid';
 
-            if (!file_exists($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
-            }
+            mysqli_begin_transaction($connection);
 
-            $file_name = time() . "_" . basename($_FILES[$proof_field]["name"]);
-            $target_file = $upload_dir . $file_name;
-            $allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf'];
-            $file_extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+            try {
+                $stmtInsertPayment = mysqli_prepare($connection, "
+                    INSERT INTO payments (bookingid, paymentmethod, paymentstatus, paymentdate)
+                    VALUES (?, ?, ?, NOW())
+                ");
+                mysqli_stmt_bind_param($stmtInsertPayment, "iss", $bookingId, $selectedMethod, $newPaymentStatus);
 
-            if (!in_array($file_extension, $allowed_extensions)) {
-                $error_message = "❌ อัปโหลดได้เฉพาะไฟล์ JPG, PNG, PDF เท่านั้น!";
-            }
-            elseif ($_FILES[$proof_field]["size"] > 2 * 1024 * 1024) {
-                $error_message = "❌ ไฟล์ต้องมีขนาดไม่เกิน 2MB!";
-            }
-            elseif (move_uploaded_file($_FILES[$proof_field]["tmp_name"], $target_file)) {
-                $updateQuery = "UPDATE bookings SET 
-                                paymentstatus = 'paid', 
-                                payment_method = ?, 
-                                payment_proof = ?, 
-                                payment_date = ? 
-                                WHERE bookingid = ?";
-                $stmt = mysqli_prepare($connection, $updateQuery);
-                mysqli_stmt_bind_param($stmt, "sssi", $payment_method, $file_name, $payment_date, $bookingid);
-                if (mysqli_stmt_execute($stmt)) {
-                    $success = true;
-                } else {
-                    $error_message = "เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล: " . mysqli_error($connection);
+                if (!mysqli_stmt_execute($stmtInsertPayment)) {
+                    throw new Exception('Failed to create payment record.');
                 }
-                mysqli_stmt_close($stmt);
-            } else {
-                $error_message = "❌ ไม่สามารถอัปโหลดไฟล์ได้! กรุณาลองใหม่";
+
+                $stmtUpdateBooking = mysqli_prepare($connection, "
+                    UPDATE bookings
+                    SET paymentstatus = ?
+                    WHERE bookingid = ? AND userid = ?
+                ");
+                mysqli_stmt_bind_param($stmtUpdateBooking, "sii", $newBookingStatus, $bookingId, $userId);
+
+                if (!mysqli_stmt_execute($stmtUpdateBooking)) {
+                    throw new Exception('Failed to update booking status.');
+                }
+
+                mysqli_commit($connection);
+                header("Location: bookings.php?paid=1");
+                exit();
+            } catch (Throwable $e) {
+                mysqli_rollback($connection);
+                $error = $e->getMessage();
             }
-        } else {
-            $error_message = "❌ กรุณาอัปโหลดหลักฐานการชำระเงิน!";
         }
     }
 }
 
-mysqli_close($connection);
+if (!empty($booking['bookingdate']) && strtotime($booking['bookingdate']) !== false) {
+    $bookingDate = date('F j, Y', strtotime($booking['bookingdate']));
+} else {
+    $bookingDate = '-';
+}
+
+include 'components/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="th">
+<main class="payment-page">
+    <div class="container payment-container">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ชำระเงิน | F1 Ticket Management</title>
+        <section class="payment-header">
+            <a href="bookings.php" class="payment-back-link">← Back to My Reservations</a>
+            <h1 class="payment-title">Payment</h1>
+            <p class="payment-subtitle">Choose your payment method and complete your booking.</p>
+        </section>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/index.css">
-    <link rel="stylesheet" href="css/pay.css">
+        <?php if ($error !== ''): ?>
+            <div class="payment-alert-error">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <section class="payment-card">
+                    <h2 class="payment-card-title"><?php echo htmlspecialchars($booking['racename']); ?></h2>
 
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">F1 Ticket Management</a>
-        </div>
-    </nav>
+                    <div class="payment-info-grid">
+                        <div class="payment-info-item">
+                            <span class="payment-label">Location</span>
+                            <span class="payment-value"><?php echo htmlspecialchars($booking['location'] . ', ' . $booking['country']); ?></span>
+                        </div>
 
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <?php if ($success): ?>
-                    <div class="card w-50 mx-auto border-success shadow-lg">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-success">✅ การชำระเงินสำเร็จ!</h5>
-                            <p class="card-text">หลักฐานการโอนของคุณถูกอัปโหลดเรียบร้อยแล้ว</p>
-                            <a href="bookings.php" class="btn btn-success">ดูรายการจอง</a>
+                        <div class="payment-info-item">
+                            <span class="payment-label">Circuit</span>
+                            <span class="payment-value"><?php echo htmlspecialchars($booking['circuitname']); ?></span>
+                        </div>
+
+                        <div class="payment-info-item">
+                            <span class="payment-label">Category</span>
+                            <span class="payment-value"><?php echo htmlspecialchars($booking['category']); ?></span>
+                        </div>
+
+                        <div class="payment-info-item">
+                            <span class="payment-label">Section</span>
+                            <span class="payment-value"><?php echo htmlspecialchars($booking['section']); ?></span>
+                        </div>
+
+                        <div class="payment-info-item">
+                            <span class="payment-label">Access Type</span>
+                            <span class="payment-value"><?php echo htmlspecialchars(seatModeTextValue($booking['seatmode'] ?? '')); ?></span>
+                        </div>
+
+                        <div class="payment-info-item">
+                            <span class="payment-label">Quantity</span>
+                            <span class="payment-value"><?php echo (int) $booking['quantity']; ?></span>
+                        </div>
+
+                        <div class="payment-info-item">
+                            <span class="payment-label">Booking Date</span>
+                            <span class="payment-value"><?php echo htmlspecialchars($bookingDate); ?></span>
+                        </div>
+
+                        <div class="payment-info-item">
+                            <span class="payment-label">Current Status</span>
+                            <span class="payment-value"><?php echo htmlspecialchars($booking['paymentstatus']); ?></span>
                         </div>
                     </div>
-                <?php elseif (!empty($error_message)): ?>
-                    <div class="card w-50 mx-auto border-danger shadow-lg">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-danger">❌ การชำระเงินล้มเหลว</h5>
-                            <p class="card-text"><?= $error_message ?></p>
-                            <a href="payment.php?bookingid=<?= $bookingid ?>" class="btn btn-danger">ลองอีกครั้ง</a>
+                </section>
+            </div>
+
+            <div class="col-lg-5">
+                <section class="payment-summary-card">
+                    <h2 class="payment-summary-title">Payment Summary</h2>
+
+                    <div class="payment-summary-box">
+                        <div class="payment-summary-row">
+                            <span>Booking ID</span>
+                            <span>#<?php echo (int) $booking['bookingid']; ?></span>
+                        </div>
+
+                        <div class="payment-summary-row">
+                            <span>Ticket Type</span>
+                            <span><?php echo htmlspecialchars($booking['category']); ?></span>
+                        </div>
+
+                        <div class="payment-summary-row">
+                            <span>Section</span>
+                            <span><?php echo htmlspecialchars($booking['section']); ?></span>
+                        </div>
+
+                        <div class="payment-summary-row">
+                            <span>Quantity</span>
+                            <span><?php echo (int) $booking['quantity']; ?></span>
+                        </div>
+
+                        <div class="payment-summary-row payment-summary-total">
+                            <span>Total Price</span>
+                            <span>฿<?php echo number_format((float) $booking['totalprice']); ?></span>
                         </div>
                     </div>
-                <?php endif; ?>
+
+                    <?php if ($currentBookingStatus === 'paid'): ?>
+                        <div class="payment-done-box">
+                            This booking has already been paid.
+                        </div>
+                    <?php elseif ($currentBookingStatus === 'cancelled' || $currentBookingStatus === 'canceled'): ?>
+                        <div class="payment-done-box payment-cancelled-box">
+                            This booking has been cancelled.
+                        </div>
+                    <?php else: ?>
+                        <form method="POST" class="payment-form">
+                            <div class="payment-method-group">
+                                <label class="payment-method-option">
+                                    <input type="radio" name="paymentmethod" value="Credit Card" <?php echo $selectedMethod === 'Credit Card' ? 'checked' : ''; ?>>
+                                    <span class="payment-method-card">
+                                        <strong>Credit / Debit Card</strong>
+                                        <small>Simulated payment</small>
+                                    </span>
+                                </label>
+
+                                <div class="payment-method-panel <?php echo $selectedMethod === 'Credit Card' ? 'show' : ''; ?>" data-method-panel="Credit Card">
+                                    <div class="payment-field">
+                                        <label class="payment-field-label">Cardholder Name</label>
+                                        <input
+                                            type="text"
+                                            name="card_name"
+                                            class="payment-input"
+                                            value="<?php echo htmlspecialchars($cardName); ?>"
+                                            placeholder="John Doe"
+                                            maxlength="60"
+                                            pattern="[A-Za-z\s]+"
+                                            title="Please use English letters only"
+                                            autocomplete="cc-name"
+                                        >
+                                    </div>
+
+                                    <div class="payment-field">
+                                        <label class="payment-field-label">Card Number</label>
+                                        <input
+                                            type="text"
+                                            name="card_number"
+                                            id="card_number"
+                                            class="payment-input"
+                                            value="<?php echo htmlspecialchars($cardNumber); ?>"
+                                            placeholder="1234 5678 9012 3456"
+                                            maxlength="19"
+                                            inputmode="numeric"
+                                            autocomplete="cc-number"
+                                        >
+                                    </div>
+
+                                    <div class="payment-inline-fields">
+                                        <div class="payment-field">
+                                            <label class="payment-field-label">Expiry Date</label>
+                                            <input
+                                                type="text"
+                                                name="expiry_date"
+                                                id="expiry_date"
+                                                class="payment-input"
+                                                value="<?php echo htmlspecialchars($expiryDate); ?>"
+                                                placeholder="MM/YY"
+                                                maxlength="5"
+                                                inputmode="numeric"
+                                                autocomplete="cc-exp"
+                                            >
+                                        </div>
+
+                                        <div class="payment-field">
+                                            <label class="payment-field-label">CVV</label>
+                                            <input
+                                                type="password"
+                                                name="cvv"
+                                                id="cvv"
+                                                class="payment-input"
+                                                value="<?php echo htmlspecialchars($cvv); ?>"
+                                                placeholder="123"
+                                                maxlength="3"
+                                                inputmode="numeric"
+                                                autocomplete="cc-csc"
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <label class="payment-method-option">
+                                    <input type="radio" name="paymentmethod" value="Bank Transfer" <?php echo $selectedMethod === 'Bank Transfer' ? 'checked' : ''; ?>>
+                                    <span class="payment-method-card">
+                                        <strong>Bank Transfer</strong>
+                                        <small>Simulated payment</small>
+                                    </span>
+                                </label>
+
+                                <div class="payment-method-panel <?php echo $selectedMethod === 'Bank Transfer' ? 'show' : ''; ?>" data-method-panel="Bank Transfer">
+                                    <div class="payment-bank-box">
+                                        <p><strong>Bank:</strong> Bangkok Bank</p>
+                                        <p><strong>Account Number:</strong> 123-4-56789-0</p>
+                                        <p><strong>Account Name:</strong> F1 Ticket Management</p>
+                                    </div>
+                                </div>
+
+                                <label class="payment-method-option">
+                                    <input type="radio" name="paymentmethod" value="PayPal" <?php echo $selectedMethod === 'PayPal' ? 'checked' : ''; ?>>
+                                    <span class="payment-method-card">
+                                        <strong>PayPal</strong>
+                                        <small>Simulated payment</small>
+                                    </span>
+                                </label>
+
+                                <div class="payment-method-panel <?php echo $selectedMethod === 'PayPal' ? 'show' : ''; ?>" data-method-panel="PayPal">
+                                    <div class="payment-bank-box">
+                                        <p>You will confirm this payment as a PayPal transaction simulation.</p>
+                                    </div>
+                                </div>
+
+                                <label class="payment-method-option">
+                                    <input type="radio" name="paymentmethod" value="PromptPay" <?php echo $selectedMethod === 'PromptPay' ? 'checked' : ''; ?>>
+                                    <span class="payment-method-card">
+                                        <strong>PromptPay</strong>
+                                        <small>Simulated payment</small>
+                                    </span>
+                                </label>
+
+                                <div class="payment-method-panel <?php echo $selectedMethod === 'PromptPay' ? 'show' : ''; ?>" data-method-panel="PromptPay">
+                                    <div class="payment-bank-box payment-qr-box">
+                                        <img src="qrcode.png" alt="PromptPay QR" class="qr-image">
+                                        <p><strong>PromptPay:</strong> 081-234-5678</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="payment-method-note">
+                                All payment methods in this system are simulated.
+                                Once you confirm the payment, the booking will be marked as <strong>Paid</strong>.
+                            </div>
+
+                            <button type="submit" class="payment-confirm-btn">
+                                Confirm Payment
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </section>
             </div>
         </div>
+
     </div>
+</main>
 
-    <div class="container mt-5">
-        <div class="card w-75 mx-auto shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">เลือกวิธีชำระเงิน</h5>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const radios = document.querySelectorAll('input[name="paymentmethod"]');
+    const panels = document.querySelectorAll('.payment-method-panel');
 
-                <form method="POST" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="payment_method">เลือกวิธีชำระเงิน:</label>
-                        <select class="form-control" name="payment_method" id="payment_method" required>
-                            <option value="">-- กรุณาเลือก --</option>
-                            <option value="credit_card">บัตรเครดิต/เดบิต</option>
-                            <option value="bank_transfer">โอนเงินผ่านธนาคาร</option>
-                            <option value="promptpay">พร้อมเพย์ (QR Code)</option>
-                        </select>
-                    </div>
+    const cardNumberInput = document.getElementById('card_number');
+    const expiryInput = document.getElementById('expiry_date');
+    const cvvInput = document.getElementById('cvv');
 
-                    <div id="credit_card_fields" class="d-none">
-                        <div class="form-group">
-                            <label>หมายเลขบัตร:</label>
-                            <input type="text" class="form-control card-number" name="card_number"
-                                placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19">
-                        </div>
-                        <div class="form-group">
-                            <label>CVV:</label>
-                            <input type="text" class="form-control cvv" name="cvv" placeholder="XXX" maxlength="3">
-                        </div>
-                        <div class="form-group">
-                            <label>วันหมดอายุ:</label>
-                            <input type="text" class="form-control expiry-date" name="expiry_date" placeholder="MM/YY"
-                                maxlength="5">
-                        </div>
-                    </div>
+    function togglePanels() {
+        const selected = document.querySelector('input[name="paymentmethod"]:checked');
+        const selectedValue = selected ? selected.value : '';
 
-                    <div id="bank_transfer_fields" class="d-none">
-                        <p>**โอนเงินเข้าบัญชี**: <strong>123-456-7890 (ธนาคาร A)</strong></p>
-                        <div class="form-group">
-                            <label>อัปโหลดสลิปการโอนเงิน:</label>
-                            <input type="file" class="form-control" id="payment_proof_bank" name="payment_proof_bank">
-                        </div>
-                    </div>
-
-                    <div id="promptpay_qr" class="d-none text-center">
-                        <p>**สแกน QR Code เพื่อชำระเงิน**</p>
-                        <img src="qrcode.png?amount=1000" alt="QR Code" class="qr-image">
-                        <div class="form-group mt-3">
-                            <label>อัปโหลดสลิปการโอนเงิน:</label>
-                            <input type="file" class="form-control" id="payment_proof_qr" name="payment_proof">
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between mt-3">
-                        <button type="submit" class="btn btn-success w-25" id="submit_btn" disabled>
-                            ยืนยันการชำระเงิน
-                        </button>
-                        <a href="bookings.php" class="btn btn-secondary w-25">ย้อนกลับ</a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script>
-   $(document).ready(function () {
-    $("#payment_method").change(function () {
-        var method = $(this).val();
-        $("#credit_card_fields").toggleClass("d-none", method !== "credit_card");
-        $("#bank_transfer_fields").toggleClass("d-none", method !== "bank_transfer");
-        $("#promptpay_qr").toggleClass("d-none", method !== "promptpay");
-        validateForm();
-    });
-
-    $(".card-number").on("input", function () {
-        var value = $(this).val().replace(/\D/g, "").substring(0, 16);
-        var formatted = value.match(/.{1,4}/g);
-        $(this).val(formatted ? formatted.join("-") : "");
-        validateForm();
-    });
-
-    $(".cvv").on("input", function () {
-        var value = $(this).val().replace(/\D/g, "").substring(0, 3);
-        $(this).val(value);
-        validateForm();
-    });
-
-    $(".expiry-date").on("input", function () {
-        var value = $(this).val().replace(/\D/g, "").substring(0, 4);
-        if (value.length > 2) {
-            value = value.slice(0, 2) + "/" + value.slice(2);
-        }
-        $(this).val(value);
-        validateForm();
-    });
-
-    $("#payment_proof_bank, #payment_proof_qr").change(function () {
-        validateForm();
-    });
-
-    function validateForm() {
-        var method = $("#payment_method").val();
-        var cardNumber = $(".card-number").val() || "";
-        var cvv = $(".cvv").val() || "";
-        var expiry = $(".expiry-date").val() || "";
-
-        var proofBank = $("#payment_proof_bank").val();
-        var proofQR = $("#payment_proof_qr").val();
-
-        var submitBtn = $("#submit_btn");
-
-        if (method === "credit_card") {
-            if (cardNumber.length === 19 && cvv.length === 3 && expiry.length === 5) {
-                submitBtn.prop("disabled", false);
+        panels.forEach(panel => {
+            if (panel.getAttribute('data-method-panel') === selectedValue) {
+                panel.classList.add('show');
             } else {
-                submitBtn.prop("disabled", true);
+                panel.classList.remove('show');
             }
-        } else if (method === "bank_transfer") {
-            if (proofBank !== "") {
-                submitBtn.prop("disabled", false);
-            } else {
-                submitBtn.prop("disabled", true);
-            }
-        } else if (method === "promptpay") {
-            if (proofQR !== "") {
-                submitBtn.prop("disabled", false);
-            } else {
-                submitBtn.prop("disabled", true);
-            }
-        } else {
-            submitBtn.prop("disabled", true);
-        }
+        });
     }
 
-    $("#payment_method").trigger("change");
+    radios.forEach(radio => {
+        radio.addEventListener('change', togglePanels);
+    });
+
+    if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', function () {
+            let value = this.value.replace(/\D/g, '').substring(0, 16);
+            value = value.replace(/(.{4})/g, '$1 ').trim();
+            this.value = value;
+        });
+    }
+
+    if (expiryInput) {
+        expiryInput.addEventListener('input', function () {
+            let value = this.value.replace(/\D/g, '').substring(0, 4);
+
+            if (value.length >= 3) {
+                value = value.substring(0, 2) + '/' + value.substring(2);
+            }
+
+            this.value = value;
+        });
+    }
+
+    if (cvvInput) {
+        cvvInput.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').substring(0, 3);
+        });
+    }
+
+    togglePanels();
 });
+</script>
 
-    </script>
-
-</body>
-</html>
+<?php include 'components/footer.php'; ?>

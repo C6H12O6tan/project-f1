@@ -1,0 +1,286 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    background: #f3f3f3;
+    color: #111827;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* NAVBAR */
+.custom-navbar {
+    background: #c11f1f;
+    padding: 14px 0;
+}
+
+.custom-navbar .custom-brand {
+    color: #fff !important;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.custom-navbar .nav-link {
+    color: #fff !important;
+    font-weight: 500;
+    margin-left: 12px;
+    margin-right: 12px;
+    transition: color 0.2s ease;
+}
+
+.custom-navbar .nav-link:hover,
+.custom-navbar .nav-link.active {
+    color: #ffffff !important;
+    opacity: 0.88;
+}
+
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none !important;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(255,255,255,1)' stroke-width='2.4' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") !important;
+}
+
+.user-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+}
+
+/* FOOTER */
+.custom-footer {
+    background: #c11f1f;
+    color: #fff;
+    text-align: center;
+    padding: 18px 0;
+    margin-top: auto;
+    font-size: 15px;
+}
+
+/* PAGE */
+.race-ticket-page {
+    padding: 36px 0 10px;
+    flex: 1;
+}
+
+.race-ticket-container {
+    max-width: 1080px;
+}
+
+.race-ticket-header {
+    margin-bottom: 24px;
+}
+
+.race-ticket-back-link {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: #c11f1f;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.race-ticket-back-link:hover {
+    color: #a81818;
+}
+
+.race-ticket-title {
+    margin: 0 0 10px;
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.race-ticket-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    color: #6b7280;
+    font-size: 0.98rem;
+}
+
+.race-ticket-card {
+    height: 100%;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.race-ticket-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 24px rgba(0, 0, 0, 0.11);
+}
+
+.race-ticket-card-top {
+    background: linear-gradient(180deg, #c5141c 0%, #be0914 100%);
+    padding: 22px 18px;
+    text-align: center;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.race-ticket-category {
+    margin: 0 0 6px;
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.race-ticket-section {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.92rem;
+}
+
+.race-ticket-card-body {
+    padding: 18px;
+}
+
+.race-ticket-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.race-ticket-label {
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.race-ticket-value {
+    color: #111827;
+    font-size: 0.96rem;
+    font-weight: 600;
+}
+
+.race-ticket-value.price {
+    color: #c11f1f;
+    font-size: 1.2rem;
+}
+
+.race-ticket-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 88px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.race-ticket-status.available {
+    background: #d7f0df;
+    color: #157347;
+}
+
+.race-ticket-status.limited {
+    background: #f4e5a7;
+    color: #8a6a00;
+}
+
+.race-ticket-status.soldout {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+.race-ticket-book-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 44px;
+    margin-top: 8px;
+    border-radius: 12px;
+    background: #c11f1f;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: 0.25s ease;
+}
+
+.race-ticket-book-btn:hover {
+    background: #a81818;
+    color: #fff;
+}
+
+.race-ticket-book-btn.disabled {
+    background: #cfcfcf;
+    color: #666;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.race-ticket-empty {
+    background: #fff;
+    border-radius: 18px;
+    padding: 28px;
+    text-align: center;
+    color: #6b7280;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 767px) {
+    .race-ticket-page {
+        padding-top: 30px;
+    }
+
+    .race-ticket-title {
+        font-size: 1.75rem;
+    }
+
+    .race-ticket-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+.race-ticket-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #fef3f2;
+    color: #c11f1f;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.race-ticket-description {
+    margin: 4px 0 12px;
+    color: #6b7280;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
