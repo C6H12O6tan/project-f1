@@ -1,113 +1,30 @@
-html,
-body {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-}
-
-body {
-    background: #f3f3f3;
-    color: #111827;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-/* NAVBAR */
-.custom-navbar {
-    background: #c11f1f;
-    padding: 14px 0;
-}
-
-.custom-navbar .custom-brand {
-    color: #fff !important;
-    font-size: 1.5rem;
-    font-weight: 600;
-    letter-spacing: 0.2px;
-}
-
-.custom-navbar .nav-link {
-    color: #fff !important;
-    font-weight: 500;
-    margin-left: 12px;
-    margin-right: 12px;
-    transition: color 0.2s ease;
-}
-
-.custom-navbar .nav-link:hover,
-.custom-navbar .nav-link.active {
-    color: #ffffff !important;
-    opacity: 0.88;
-}
-
-.navbar-toggler {
-    border-color: rgba(255, 255, 255, 0.45) !important;
-}
-
-.navbar-toggler:focus {
-    box-shadow: none !important;
-}
-
-.navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(255,255,255,1)' stroke-width='2.4' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") !important;
-}
-
-.user-menu-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.user-avatar-circle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    font-size: 14px;
-}
-
-/* FOOTER */
-.custom-footer {
-    background: #c11f1f;
-    color: #fff;
-    text-align: center;
-    padding: 18px 0;
-    margin-top: auto;
-    font-size: 15px;
-}
-
-/* PAGE */
 .book-page {
-    padding: 36px 0 24px;
-    flex: 1;
+    padding: 36px 0 48px;
 }
 
 .book-container {
-    max-width: 1080px;
+    max-width: 1240px;
 }
 
 .book-header {
-    margin-bottom: 22px;
+    margin-bottom: 24px;
 }
 
 .book-back-link {
     display: inline-block;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     color: #c11f1f;
     text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .book-back-link:hover {
-    color: #a81818;
+    color: #9f1717;
 }
 
 .book-title {
     margin: 0 0 8px;
-    font-size: 2.15rem;
+    font-size: 2.35rem;
     font-weight: 800;
     color: #111827;
 }
@@ -115,210 +32,308 @@ body {
 .book-subtitle {
     margin: 0;
     color: #6b7280;
-    font-size: 1rem;
 }
 
 .book-alert-error {
-    background: #fde8e8;
-    color: #b42318;
-    border: 1px solid #f8b4b4;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
     border-radius: 14px;
     padding: 14px 16px;
-    margin-bottom: 18px;
-    font-size: 0.96rem;
+    margin-bottom: 20px;
     font-weight: 600;
 }
 
-.book-card,
-.book-form-card {
-    background: #fff;
-    border-radius: 18px;
-    padding: 20px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
-    height: 100%;
-}
-
-.book-card-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 14px;
-    margin-bottom: 18px;
-}
-
-.book-card-title {
-    margin: 0;
-    font-size: 1.45rem;
-    font-weight: 700;
-    color: #111827;
-}
-
-.book-status-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 88px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.book-status-badge.available {
-    background: #d7f0df;
-    color: #157347;
-}
-
-.book-status-badge.limited {
-    background: #f4e5a7;
-    color: #8a6a00;
-}
-
-.book-status-badge.soldout {
-    background: #e5e7eb;
-    color: #4b5563;
-}
-
-.book-info-grid {
+.book-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    grid-template-columns: minmax(0, 1.9fr) minmax(320px, 380px);
+    gap: 28px;
+    align-items: start;
 }
 
-.book-info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 12px 14px;
+.book-main-card,
+.book-summary-card {
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow: 0 10px 28px rgba(17, 24, 39, 0.08);
+    border: 1px solid #ececec;
+}
+
+.book-main-card {
+    padding: 24px;
+}
+
+.book-summary-card {
+    padding: 24px;
+    position: sticky;
+    top: 24px;
+}
+
+.book-ticket-overview {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.book-overview-item {
+    background: #f8fafc;
+    border: 1px solid #edf0f5;
     border-radius: 14px;
-    background: #f8f9fb;
+    padding: 12px 14px;
 }
 
-.book-info-item-full {
-    grid-column: 1 / -1;
-}
-
-.book-label {
+.book-overview-label,
+.book-summary-label {
+    display: block;
     color: #6b7280;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
+    margin-bottom: 4px;
 }
 
-.book-value {
+.book-overview-value,
+.book-summary-value {
     color: #111827;
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-.book-price {
-    color: #c11f1f;
-}
-
-.book-description {
-    color: #4b5563;
-    font-size: 0.95rem;
-    font-weight: 500;
-    line-height: 1.6;
-}
-
-.book-form-title {
-    margin: 0 0 18px;
-    font-size: 1.28rem;
     font-weight: 700;
-    color: #111827;
 }
 
-.book-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.book-field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.book-general-box {
+    max-width: 280px;
 }
 
 .book-field-label {
-    color: #374151;
-    font-size: 0.95rem;
-    font-weight: 600;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #111827;
 }
 
 .book-input {
     width: 100%;
-    height: 46px;
-    border: 1px solid #dddddd;
+    height: 48px;
+    border: 1px solid #d1d5db;
     border-radius: 12px;
     padding: 0 14px;
-    font-size: 0.96rem;
-    outline: none;
-    background: #fff;
+    font-size: 1rem;
 }
 
 .book-input:focus {
+    outline: none;
     border-color: #c11f1f;
-    box-shadow: 0 0 0 3px rgba(193, 31, 31, 0.08);
 }
 
-.book-summary {
-    background: #f8f9fb;
-    border-radius: 14px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.book-helper-text {
+    display: block;
+    margin-top: 8px;
+    color: #6b7280;
 }
 
-.book-summary-row {
+.seat-legend {
     display: flex;
-    justify-content: space-between;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 18px;
+}
+
+.seat-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     color: #374151;
-    font-size: 0.94rem;
-}
-
-.book-submit-btn {
-    width: 100%;
-    height: 46px;
-    border: none;
-    border-radius: 12px;
-    background: #c11f1f;
-    color: #fff;
-    font-size: 0.96rem;
-    font-weight: 700;
-    transition: 0.25s ease;
-}
-
-.book-submit-btn:hover {
-    background: #a81818;
-}
-
-.book-soldout-box {
-    background: #f3f4f6;
-    color: #4b5563;
-    border-radius: 14px;
-    padding: 16px;
-    text-align: center;
-    font-size: 0.95rem;
     font-weight: 600;
 }
 
-@media (max-width: 767px) {
-    .book-page {
-        padding-top: 30px;
-    }
+.seat-legend-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    display: inline-block;
+}
 
-    .book-title {
-        font-size: 1.8rem;
-    }
+.seat-legend-box.available {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+}
 
-    .book-info-grid {
+.seat-legend-box.selected {
+    background: #c11f1f;
+    border: 1px solid #c11f1f;
+}
+
+.seat-legend-box.booked {
+    background: #9ca3af;
+    border: 1px solid #9ca3af;
+}
+
+.track-banner {
+    background: linear-gradient(90deg, #c11f1f, #a00f0f);
+    color: #ffffff;
+    text-align: center;
+    border-radius: 16px;
+    padding: 16px 20px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 26px;
+}
+
+.seat-map {
+    display: grid;
+    gap: 16px;
+}
+
+.seat-row {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.seat-row-label {
+    font-weight: 800;
+    color: #111827;
+    text-align: center;
+}
+
+.seat-row-seats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.seat-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: 1px solid #d1d5db;
+    transition: all 0.18s ease;
+}
+
+.seat-btn.is-available {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.seat-btn.is-available:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.seat-btn.is-selected {
+    background: #c11f1f !important;
+    color: #ffffff !important;
+    border-color: #c11f1f !important;
+}
+
+.seat-btn.is-booked {
+    background: #9ca3af;
+    color: #111827;
+    border-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.book-summary-title {
+    margin: 0 0 20px;
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.book-summary-block {
+    margin-bottom: 18px;
+}
+
+.book-divider {
+    margin: 18px 0 20px;
+    border: 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.book-price-wrap {
+    margin-bottom: 22px;
+}
+
+.book-summary-price {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.book-submit-btn,
+.book-cancel-btn {
+    display: flex;
+    width: 100%;
+    min-height: 52px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 800;
+    transition: all 0.2s ease;
+}
+
+.book-submit-btn {
+    border: 0;
+    background: #c11f1f;
+    color: #ffffff;
+    margin-bottom: 12px;
+}
+
+.book-submit-btn:hover {
+    background: #a51111;
+    color: #ffffff;
+}
+
+.book-submit-btn:disabled {
+    background: #d1d5db;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+.book-cancel-btn {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #111827;
+}
+
+.book-cancel-btn:hover {
+    color: #111827;
+    background: #f9fafb;
+}
+
+.book-soldout-box {
+    padding: 18px 20px;
+    border-radius: 14px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-weight: 700;
+}
+
+@media (max-width: 991.98px) {
+    .book-layout {
         grid-template-columns: 1fr;
     }
 
-    .book-card-head {
-        flex-direction: column;
-        align-items: flex-start;
+    .book-summary-card {
+        position: static;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .book-ticket-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .seat-row {
+        grid-template-columns: 1fr;
+    }
+
+    .seat-row-label {
+        text-align: left;
+    }
+
+    .book-title {
+        font-size: 2rem;
     }
 }

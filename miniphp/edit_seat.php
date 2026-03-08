@@ -1,88 +1,126 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 include 'db.php';
 
-if (!isset($_GET['seatid'])) {
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+    header("Location: login.php");
+    exit();
+}
+
+$seatid = isset($_GET['seatid']) ? (int) $_GET['seatid'] : 0;
+
+if ($seatid <= 0) {
     header("Location: admin_seating.php");
     exit();
 }
 
-$seatid = $_GET['seatid'];
+$error = '';
 
 $query = "SELECT * FROM seating WHERE seatid = ?";
-$stmt = $connection->prepare($query);
-$stmt->bind_param("i", $seatid);
-$stmt->execute();
-$result = $stmt->get_result();
+$stmt = mysqli_prepare($connection, $query);
+mysqli_stmt_bind_param($stmt, "i", $seatid);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$seat = mysqli_fetch_assoc($result);
+mysqli_stmt_close($stmt);
 
-if ($result->num_rows == 0) {
+if (!$seat) {
     header("Location: admin_seating.php");
     exit();
 }
 
-$seat = $result->fetch_assoc();
+$zoneQuery = mysqli_query($connection, "SELECT DISTINCT section FROM seating ORDER BY section ASC");
 
-$zone_query = "SELECT DISTINCT section FROM seating";
-$zone_result = mysqli_query($connection, $zone_query);
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $section = trim($_POST['section'] ?? '');
+    $row = strtoupper(trim($_POST['row'] ?? ''));
+    $seat_number_raw = isset($_POST['seat_number']) ? (int) $_POST['seat_number'] : 0;
+    $status = trim($_POST['status'] ?? '');
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $section = $_POST['section'];
-    $row = $_POST['row'];
-    $seat_number = $_POST['seat_number'];
-    $status = $_POST['status'];
-
-    $update_query = "UPDATE seating SET section = ?, rownumber = ?, seatnumber = ?, status = ? WHERE seatid = ?";
-    $stmt = $connection->prepare($update_query);
-    $stmt->bind_param("ssssi", $section, $row, $seat_number, $status, $seatid);
-
-    if ($stmt->execute()) {
-        header("Location: admin_seating.php");
-        exit();
+    if ($section === '') {
+        $error = 'Please select a section.';
+    } elseif ($row === '' || strlen($row) !== 1) {
+        $error = 'Please enter a valid row.';
+    } elseif ($seat_number_raw <= 0) {
+        $error = 'Please enter a valid seat number.';
+    } elseif (!in_array($status, ['available', 'booked'], true)) {
+        $error = 'Invalid seat status.';
     } else {
-        echo "เกิดข้อผิดพลาด: " . $stmt->error;
+        $seat_number = str_pad((string) $seat_number_raw, 3, '0', STR_PAD_LEFT);
+
+        $update_query = "
+            UPDATE seating
+            SET section = ?, rownumber = ?, seatnumber = ?, status = ?
+            WHERE seatid = ?
+        ";
+        $stmt = mysqli_prepare($connection, $update_query);
+        mysqli_stmt_bind_param($stmt, "ssssi", $section, $row, $seat_number, $status, $seatid);
+
+        if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            header("Location: admin_seating.php?updated=1");
+            exit();
+        } else {
+            $error = "Failed to update seat: " . mysqli_error($connection);
+        }
+
+        mysqli_stmt_close($stmt);
     }
 }
+
+$current_page = 'admin_seating.php';
+include 'components/admin_header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <title>Edit Seat</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <h2>แก้ไขที่นั่ง</h2>
+<header class="custom-header text-center py-4">
+    <h1>Edit Seat</h1>
+    <p>แก้ไขข้อมูลที่นั่ง</p>
+</header>
+
+<div class="container mt-5 mb-5">
+    <div class="table-card p-4">
+        <?php if ($error !== ''): ?>
+            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+
         <form method="POST">
             <div class="form-group">
-                <label>โซน</label>
+                <label>Section</label>
                 <select class="form-control" name="section" required>
-                    <?php while ($row = mysqli_fetch_assoc($zone_result)) { ?>
-                        <option value="<?= $row['section'] ?>" <?= ($seat['section'] == $row['section']) ? 'selected' : '' ?>>
-                            <?= $row['section'] ?>
+                    <?php while ($rowItem = mysqli_fetch_assoc($zoneQuery)): ?>
+                        <option value="<?php echo htmlspecialchars($rowItem['section']); ?>"
+                            <?php echo ($seat['section'] === $rowItem['section']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($rowItem['section']); ?>
                         </option>
-                    <?php } ?>
+                    <?php endwhile; ?>
                 </select>
             </div>
+
             <div class="form-group">
-                <label>แถว</label>
-                <input type="text" class="form-control" name="row" value="<?= $seat['rownumber'] ?>" required>
+                <label>Row</label>
+                <input type="text" class="form-control" name="row" maxlength="1" value="<?php echo htmlspecialchars($seat['rownumber']); ?>" required>
             </div>
+
             <div class="form-group">
-                <label>เลขที่นั่ง</label>
-                <input type="text" class="form-control" name="seat_number" value="<?= $seat['seatnumber'] ?>" required>
+                <label>Seat Number</label>
+                <input type="number" class="form-control" name="seat_number" min="1" value="<?php echo (int) $seat['seatnumber']; ?>" required>
             </div>
+
             <div class="form-group">
-                <label>สถานะ</label>
+                <label>Status</label>
                 <select class="form-control" name="status" required>
-                    <option value="available" <?= ($seat['status'] == 'available') ? 'selected' : '' ?>>available</option>
-                    <option value="booked" <?= ($seat['status'] == 'booked') ? 'selected' : '' ?>>booked</option>
+                    <option value="available" <?php echo ($seat['status'] === 'available') ? 'selected' : ''; ?>>available</option>
+                    <option value="booked" <?php echo ($seat['status'] === 'booked') ? 'selected' : ''; ?>>booked</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">บันทึกการเปลี่ยนแปลง</button>
-            <a href="admin_seating.php" class="btn btn-secondary">กลับ</a>
+
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="admin_seating.php" class="btn btn-secondary">Back</a>
         </form>
     </div>
-</body>
-</html>
+</div>
+
+<?php include 'components/admin_footer.php'; ?>
